@@ -224,11 +224,11 @@ def create_use_sensitivity_figure():
             for _, row in gdf_lines.iterrows():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
-                    fontsize = 8
+                    fontsize = 12
                     # Check if the special label exists, otherwise use the numeric sensitivity
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
-                        fontsize = 7  # Use a smaller font for the longer descriptive text
+                        fontsize = 10  # Use a smaller font for the longer descriptive text
                     else:
                         label_text = f"sens: {row['sensitivity']:.2f}"
     
