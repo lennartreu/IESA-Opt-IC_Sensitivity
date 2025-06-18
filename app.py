@@ -583,7 +583,7 @@ def create_use_sensitivity_per_case():
 
     # Define the parameter cases for each subplot
     PARAMETER_CASES = {
-        "Baseline": ['Baseline', 'Baseline']
+        "Baseline": ['Baseline', 'Baseline'],
         "HVDC Parameter": ['HVDC-Min', 'HVDC-Max'],
         "Energy Demand Parameter": ['ED-Min', 'ED-Max'],
         "Electricity Price Parameter": ['EP-Min', 'EP-Max'],
