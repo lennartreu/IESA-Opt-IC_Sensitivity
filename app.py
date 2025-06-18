@@ -577,14 +577,14 @@ def create_use_sensitivity_per_case():
     # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
-        'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
+        'Baseline', 'HVDC-Min', 'HVDC-Max', 'ED-Min', 'ED-Max',
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
 
     # Define the parameter cases for each subplot
     PARAMETER_CASES = {
+        "Baseline": ['Baseline', 'Baseline']
         "HVDC Parameter": ['HVDC-Min', 'HVDC-Max'],
-        "OWF Cost Parameter": ['OWF-C-Min', 'OWF-C-Max'],
         "Energy Demand Parameter": ['ED-Min', 'ED-Max'],
         "Electricity Price Parameter": ['EP-Min', 'EP-Max'],
         "OWF Stock Parameter": ['OWF-S-Min', 'OWF-S-Max'],
