@@ -210,7 +210,7 @@ def create_use_sensitivity_figure():
     
         # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        norm = mcolors.Normalize(vmin=0, vmax=1.0)
+        norm = mcolors.Normalize(vmin=0, vmax=2.0)
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
@@ -230,7 +230,7 @@ def create_use_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 7  # Use a smaller font for the longer descriptive text
                     else:
-                        label_text = f"sensitivity: {row['sensitivity']:.2f}"
+                        label_text = f"sens: {row['sensitivity']:.2f}"
     
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
