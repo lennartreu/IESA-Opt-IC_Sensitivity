@@ -69,7 +69,18 @@ def load_all_data():
 # ================================================================
 
 def create_use_sensitivity_figure():
-        # --- Configuration ---
+        # SENSITIVITY ANALYSIS VISUALIZATION - USE
+    #
+    # --- DESCRIPTION ---
+    # This script visualizes the results of a sensitivity analysis for the North Sea
+    # energy infrastructure. It generates a single map where:
+    # - Line thickness (interconnectors) and point size (hubs) are determined by the 'Baseline' case.
+    # - The color of lines and points represents their sensitivity.
+    # --- MODIFIED: If an interconnector's use is negligible (<0.1) in a scenario,
+    #   the label is changed to explain that it 'disappears' instead of showing a
+    #   potentially misleading high sensitivity value.
+    
+    # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
         'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
@@ -116,6 +127,7 @@ def create_use_sensitivity_figure():
         """Checks if a line's use is negligible in any scenario and returns a descriptive label."""
         for col in sensitivity_cols:
             if row[col] < 0.1:  # Threshold for being considered 'disappeared'
+                # Make scenario names more readable for the label
                 scenario_name = col.replace('-', ' ').replace('Min', 'Min').replace('Max', 'Max')
                 return f"IC disappears in {scenario_name} case"
         return None
@@ -147,7 +159,7 @@ def create_use_sensitivity_figure():
         )
         df_lines_agg = df_lines_raw.groupby('pair_key', as_index=False)[COLUMN_HEADERS].max()
     
-        # Calculate Sensitivity and Check for Disappearance
+        # --- Calculate Sensitivity and Check for Disappearance ---
         baseline_lines = df_lines_agg['Baseline']
         min_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].min(axis=1)
         max_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].max(axis=1)
@@ -155,6 +167,8 @@ def create_use_sensitivity_figure():
         df_lines_agg['sensitivity'] = (max_vals_lines - min_vals_lines) / (baseline_lines + epsilon)
         df_lines_agg['thickness'] = df_lines_agg['Baseline'].apply(scale_line_thickness)
         df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(), index=df_lines_agg.index)
+    
+        # --- MODIFICATION: Generate the special label for disappearing interconnectors ---
         df_lines_agg['disappearance_label'] = df_lines_agg.apply(
             lambda row: find_disappearing_scenario(row, SENSITIVITY_COLUMNS),
             axis=1
@@ -166,6 +180,7 @@ def create_use_sensitivity_figure():
             if col in df_points_raw.columns:
                 df_points_raw[col] = pd.to_numeric(df_points_raw[col], errors='coerce')
         df_points_raw[COLUMN_HEADERS] = df_points_raw[COLUMN_HEADERS].fillna(0)
+    
         df_points_raw = df_points_raw.rename(columns={'DistPointA': 'label'})
         df_points_raw['label'] = df_points_raw['label'].astype(str).str.strip()
         baseline_points = df_points_raw['Baseline']
@@ -184,8 +199,7 @@ def create_use_sensitivity_figure():
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
-                    'disappearance_label': row['disappearance_label'],
-                    'baseline_use': row['Baseline']  # --- MODIFICATION: Pass use data for labeling ---
+                    'disappearance_label': row['disappearance_label'] # Pass the new label
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
@@ -206,25 +220,20 @@ def create_use_sensitivity_figure():
         # Plot Lines and Points
         if not gdf_lines.empty:
             gdf_lines.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm, linewidth=gdf_lines['thickness'], zorder=4)
-            # --- MODIFICATION: Add conditional labels for sensitivity and a new label for baseline use ---
+            # --- MODIFICATION: Add conditional labels for line sensitivity ---
             for _, row in gdf_lines.iterrows():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
-    
-                    # Label 1: Sensitivity or Disappearance (above the line)
                     fontsize = 8
+                    # Check if the special label exists, otherwise use the numeric sensitivity
                     if pd.notna(row['disappearance_label']):
-                        sensitivity_text = row['disappearance_label']
-                        fontsize = 7
+                        label_text = row['disappearance_label']
+                        fontsize = 7  # Use a smaller font for the longer descriptive text
                     else:
-                        sensitivity_text = f"Sens: {row['sensitivity']:.2f}"
-                    ax.text(midpoint.x, midpoint.y + 0.05, sensitivity_text, fontsize=fontsize, ha='center', va='bottom',
-                            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
+                        label_text = f"{row['sensitivity']:.2f}"
     
-                    # Label 2: Baseline Use (below the line)
-                    use_text = f"{row['baseline_use']:.0f} PJ"
-                    ax.text(midpoint.x, midpoint.y - 0.05, use_text, fontsize=8, ha='center', va='top',
-                            bbox=dict(facecolor='lightblue', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
+                    ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
+                            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
     
         if not gdf_points_to_plot.empty:
             gdf_points_to_plot.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm,
@@ -260,6 +269,7 @@ def create_use_sensitivity_figure():
         Line2D([0], [0], linestyle='--', color='black', linewidth=0.6, label='EEZ Boundaries')
     ]
     ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Use Legend")
+
     return fig
 
 def create_stock_sensitivity_figure():
