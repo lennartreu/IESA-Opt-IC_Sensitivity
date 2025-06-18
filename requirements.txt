@@ -1,8 +1,1 @@
-shapely
-pandas
 geopandas
-openpyxl
-matplotlib
-os
-numpy
-streamlit
