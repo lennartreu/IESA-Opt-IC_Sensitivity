@@ -147,12 +147,12 @@ def create_use_sensitivity_figure():
     os.makedirs(output_directory, exist_ok=True)
 
     # --- Scaling and other Helper Functions ---
-    def scale_line_thickness(capacity_gw, data_min=0.1, data_max=1000, viz_min=5, viz_max=60.0):
+    def scale_line_thickness(capacity_gw, data_min=0, data_max=1000, viz_min=5, viz_max=60.0):
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
 
-    def scale_point_size(power_stock_gw, data_min=0.1, data_max=1000, viz_min=50, viz_max=4000):
+    def scale_point_size(power_stock_gw, data_min=0, data_max=1000, viz_min=50, viz_max=4000):
         if pd.isna(power_stock_gw) or power_stock_gw <= data_min: return 0.0
         if power_stock_gw >= data_max: return viz_max
         return viz_min + ((power_stock_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
@@ -399,7 +399,7 @@ def create_stock_sensitivity_figure():
         for _, row in df_lines_agg.iterrows():
             point_a = gdf_all_points[gdf_all_points['label'] == row['DistPointA']]
             point_b = gdf_all_points[gdf_all_points['label'] == row['DistPointB']]
-            if not point_a.empty and not point_b.empty and row['thickness'] > 0:
+            if not point_a.empty and not point_b.empty:
                 lines_data.append({
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
