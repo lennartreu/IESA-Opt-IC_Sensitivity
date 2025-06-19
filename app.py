@@ -69,7 +69,7 @@ def load_all_data():
 # ================================================================
 
 def create_use_sensitivity_figure():
-        # SENSITIVITY ANALYSIS VISUALIZATION - USE
+    # SENSITIVITY ANALYSIS VISUALIZATION - USE
     #
     # --- DESCRIPTION ---
     # This script visualizes the results of a sensitivity analysis for the North Sea
@@ -79,7 +79,7 @@ def create_use_sensitivity_figure():
     # --- MODIFIED: If an interconnector's use is negligible (<0.1) in a scenario,
     #   the label is changed to explain that it 'disappears' instead of showing a
     #   potentially misleading high sensitivity value.
-    
+
     # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
@@ -87,34 +87,34 @@ def create_use_sensitivity_figure():
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
     SENSITIVITY_COLUMNS = COLUMN_HEADERS[1:]  # All columns except the baseline
-    
+
     # Common file paths and settings
     excel_file_locations = "manual input/Hub locations input.xlsx"
     sheet_name_line_capacity = "XC Trade Use"
     sheet_name_point_size = "Offshore Power Use"
     sheet_name_NSGorDirect = "NSG"
-    
+
     eez_shapefile = "data/eez/eez_v12.shp"
     land_shapefile = "data/naturalearth/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp"
     bbox = (-2, 51, 10, 60)  # Bounding box: (min_lon, min_lat, max_lon, max_lat)
     output_directory = "output/visualisation/"
-    
+
     # Create output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
-    
+
     # --- Scaling Functions ---
     def scale_line_thickness(capacity_gw, data_min=0, data_max=1000, viz_min=5, viz_max=60.0):
         """Scales line thickness based on Baseline Use in PJ."""
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
-    
+
     def scale_point_size(power_stock_gw, data_min=0, data_max=1000, viz_min=50, viz_max=4000):
         """Scales point size based on Baseline Use in PJ."""
         if pd.isna(power_stock_gw) or power_stock_gw <= data_min: return 0.0
         if power_stock_gw >= data_max: return viz_max
         return viz_min + ((power_stock_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
-    
+
     def draw_compass(ax, x_pos=0.97, y_pos=0.97, size_val=0.05):
         """Draws a compass rose on the given axes."""
         ax.annotate('N', xy=(x_pos, y_pos), xytext=(x_pos, y_pos - size_val * 1.5),
@@ -122,22 +122,20 @@ def create_use_sensitivity_figure():
                     ha='center', va='center', fontsize=12, xycoords='axes fraction')
         ax.plot(x_pos, y_pos - size_val * 0.75, 'o', color='black', markersize=size_val * 100,
                 transform=ax.transAxes, fillstyle='none')
-    
+
     def find_disappearing_scenario(row, sensitivity_cols):
         """Checks if a line's use is negligible in any scenario and returns a descriptive label."""
         for col in sensitivity_cols:
             if row[col] < 0.1:  # Threshold for being considered 'disappeared'
-                # Make scenario names more readable for the label
-                # scenario_name = col.replace('-', ' ').replace('Min', 'Min').replace('Max', 'Max')
                 return f"IC disappears in one or more cases"
         return None
-    
+
     def generate_sensitivity_map(ax):
         """
         Generates a single map visualizing the sensitivity analysis results.
         """
         excel_file_path = f"manual input/{SENSITIVITY_FILE}.xlsx"
-    
+
         # --- Read Location Data ---
         df_locations_all = pd.read_excel(excel_file_locations, sheet_name=sheet_name_NSGorDirect)
         gdf_all_points = gpd.GeoDataFrame(
@@ -146,49 +144,57 @@ def create_use_sensitivity_figure():
             crs="EPSG:4326"
         )
         gdf_all_points['label'] = gdf_all_points['label'].astype(str).str.strip()
-    
+
         # --- Process Line Data (Interconnectors) ---
         df_lines_raw = pd.read_excel(excel_file_path, sheet_name=sheet_name_line_capacity)
         for col in COLUMN_HEADERS:
             if col in df_lines_raw.columns:
                 df_lines_raw[col] = pd.to_numeric(df_lines_raw[col], errors='coerce')
         df_lines_raw[COLUMN_HEADERS] = df_lines_raw[COLUMN_HEADERS].fillna(0)
-    
+
         df_lines_raw['pair_key'] = df_lines_raw.apply(
             lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
         )
         df_lines_agg = df_lines_raw.groupby('pair_key', as_index=False)[COLUMN_HEADERS].max()
-    
-        # --- Calculate Sensitivity and Check for Disappearance ---
+
+        # --- Calculate Sensitivity (MODIFIED) ---
         baseline_lines = df_lines_agg['Baseline']
-        min_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].min(axis=1)
-        max_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].max(axis=1)
         epsilon = 1e-9
-        df_lines_agg['sensitivity'] = (max_vals_lines - min_vals_lines) / (baseline_lines + epsilon)
+
+        # Calculate the absolute difference for each sensitivity column, divide by baseline, then average
+        sensitivity_components_lines = pd.DataFrame()
+        for col in SENSITIVITY_COLUMNS:
+            sensitivity_components_lines[col] = np.abs(df_lines_agg[col] - baseline_lines) / (baseline_lines + epsilon)
+        df_lines_agg['sensitivity'] = sensitivity_components_lines.mean(axis=1) # Average of the individual sensitivities
+
         df_lines_agg['thickness'] = df_lines_agg['Baseline'].apply(scale_line_thickness)
         df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(), index=df_lines_agg.index)
-    
+
         # --- MODIFICATION: Generate the special label for disappearing interconnectors ---
         df_lines_agg['disappearance_label'] = df_lines_agg.apply(
             lambda row: find_disappearing_scenario(row, SENSITIVITY_COLUMNS),
             axis=1
         )
-    
+
         # --- Process Point Data (Hubs) ---
         df_points_raw = pd.read_excel(excel_file_path, sheet_name=sheet_name_point_size)
         for col in COLUMN_HEADERS:
             if col in df_points_raw.columns:
                 df_points_raw[col] = pd.to_numeric(df_points_raw[col], errors='coerce')
         df_points_raw[COLUMN_HEADERS] = df_points_raw[COLUMN_HEADERS].fillna(0)
-    
+
         df_points_raw = df_points_raw.rename(columns={'DistPointA': 'label'})
-        df_points_raw['label'] = df_points_raw['label'].astype(str).str.strip()
+        df_points_raw['label'] = df_points_raw['label'].astype(str).strip()
         baseline_points = df_points_raw['Baseline']
-        min_vals_points = df_points_raw[SENSITIVITY_COLUMNS].min(axis=1)
-        max_vals_points = df_points_raw[SENSITIVITY_COLUMNS].max(axis=1)
-        df_points_raw['sensitivity'] = (max_vals_points - min_vals_points) / (baseline_points + epsilon)
+
+        # Calculate Sensitivity for points (MODIFIED)
+        sensitivity_components_points = pd.DataFrame()
+        for col in SENSITIVITY_COLUMNS:
+            sensitivity_components_points[col] = np.abs(df_points_raw[col] - baseline_points) / (baseline_points + epsilon)
+        df_points_raw['sensitivity'] = sensitivity_components_points.mean(axis=1) # Average of the individual sensitivities
+
         df_points_raw['size'] = df_points_raw['Baseline'].apply(scale_point_size)
-    
+
         # --- Prepare Geodataframes for Plotting ---
         lines_data, connected_points_labels = [], set()
         for _, row in df_lines_agg.iterrows():
@@ -203,20 +209,22 @@ def create_use_sensitivity_figure():
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
-    
+
         gdf_points_to_plot = gdf_all_points[gdf_all_points['label'].isin(connected_points_labels)].copy()
         gdf_points_to_plot = gdf_points_to_plot.merge(df_points_raw[['label', 'Baseline', 'sensitivity', 'size']], on='label', how='left')
         gdf_points_to_plot.fillna(0, inplace=True)
-    
+
         # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        norm = mcolors.Normalize(vmin=0, vmax=2.0)
+        # The maximum value for normalization might need adjustment based on typical average sensitivities
+        # A vmax of 1.0 or 2.0 is usually a good starting point for relative sensitivities.
+        norm = mcolors.Normalize(vmin=0, vmax=1.0) # Adjusted vmax to 1.0 as average sensitivity often stays lower
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
         land.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.5)
         eez.boundary.plot(ax=ax, color='black', linewidth=0.6, linestyle='--')
-    
+
         # Plot Lines and Points
         if not gdf_lines.empty:
             gdf_lines.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm, linewidth=gdf_lines['thickness'], zorder=4)
@@ -231,10 +239,10 @@ def create_use_sensitivity_figure():
                         fontsize = 10  # Use a smaller font for the longer descriptive text
                     else:
                         label_text = f"sens: {row['sensitivity']:.2f}"
-    
+
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
-    
+
         if not gdf_points_to_plot.empty:
             gdf_points_to_plot.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm,
                                     markersize=gdf_points_to_plot['size'], zorder=5,
@@ -243,26 +251,27 @@ def create_use_sensitivity_figure():
                 label_text = f"{row['label']}\n({row['Baseline']:.0f} PJ)" if row['Baseline'] > 0 else row['label']
                 ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=9, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
-    
+
         # Final map settings
         draw_compass(ax)
         ax.set_xlim(bbox[0], bbox[2]); ax.set_ylim(bbox[1], bbox[3])
-        ax.set_title("Sensitivity of North Sea Infrastructure Use", fontsize=20, pad=20)
+        ax.set_title("Sensitivity of North Sea Infrastructure Use (Average Sensitivity)", fontsize=20, pad=20) # Title updated
         ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
         return cmap, norm
-    
+
     # --- Main Script Execution ---
     fig, ax = plt.subplots(figsize=(15, 15))
     plt.subplots_adjust(left=0.05, right=0.85, top=0.95, bottom=0.05)
-    
+
     cmap, norm = generate_sensitivity_map(ax)
-    
+
     # --- Create Legends ---
     cbar_ax = fig.add_axes([0.87, 0.25, 0.03, 0.5])
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.set_label('Sensitivity\n(Total Result Range / Baseline)', fontsize=12, rotation=270, labelpad=25)
-    
+    # Label updated to reflect average sensitivity calculation
+    cbar.set_label('Average Sensitivity\n(Avg Abs Relative Change from Baseline)', fontsize=12, rotation=270, labelpad=25)
+
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(100), label='100PJ Interconnection'),
         Line2D([0], [0], color='grey', lw=scale_line_thickness(300), label='300PJ Interconnection'),
