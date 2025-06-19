@@ -254,7 +254,7 @@ def create_use_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 10
                     else:
-                        label_text = f"sens: {row['sensitivity']:.2f}\n\n{df_lines_agg['Baseline']:.2f} GW"
+                        label_text = f"sens: {row['sensitivity']:.2f}"
 
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
@@ -435,7 +435,8 @@ def create_stock_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 10  # Use a specific font size for the descriptive text
                     else:
-                        label_text = f"sens: {row['sensitivity']:.2f}"
+                        label_text = f"sens: {row['sensitivity']:.2f}\n\n{df_lines_agg['Baseline']:.2f} GW"
+                        
                     
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
