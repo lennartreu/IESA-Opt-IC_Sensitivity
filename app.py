@@ -964,14 +964,14 @@ def build_interconnection_summary_table(df_stock, df_use):
     stock_summary = df_stock[['pair_key', 'sensitivity', 'Baseline']].copy()
     stock_summary.rename(columns={
         'sensitivity': 'Avg Stock Sensitivity',
-        'Baseline': 'Stock Baseline'
+        'Baseline': 'Stock Baseline [GW]'
     }, inplace=True)
 
     # Prepare use summary
     use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
     use_summary.rename(columns={
         'sensitivity': 'Avg Use Sensitivity',
-        'Baseline': 'Use Baseline'
+        'Baseline': 'Use Baseline [PJ]'
     }, inplace=True)
 
     # Merge on pair_key
@@ -1173,8 +1173,8 @@ elif plot_choice == "Table: IC Sensitivity Overview":
     # st.dataframe(summary_table, use_container_width=True)
     st.dataframe(
     summary_table.style.format({
-        "Stock Baseline": "{:.2f}",
-        "Use Baseline": "{:.2f}"
+        "Stock Baseline [GW]": "{:.0f}",
+        "Use Baseline [PJ]": "{:.0f}"
     }),
     use_container_width=True
     )
