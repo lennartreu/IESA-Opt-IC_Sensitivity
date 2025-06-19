@@ -1173,8 +1173,8 @@ elif plot_choice == "Table: IC Sensitivity Overview":
     # st.dataframe(summary_table, use_container_width=True)
     st.dataframe(
     summary_table.style.format({
-        "Stock Baseline [GW]": "{:.0f}",
-        "Use Baseline [PJ]": "{:.0f}"
+        "Stock Baseline [GW]": f"{:.1f} GW",
+        "Use Baseline [PJ]": f"{:.1f} PJ"
     }),
     use_container_width=True
     )
