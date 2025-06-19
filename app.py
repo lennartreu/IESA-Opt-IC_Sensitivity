@@ -289,10 +289,53 @@ def create_use_sensitivity_figure():
 
     return fig
 
+Python
+import pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from matplotlib.lines import Line2D
+from shapely.geometry import LineString, Point
+import os
+
+# --- Helper Functions ---
+
+def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
+    """
+    Calculates the average sensitivity across specified parameter pairs.
+
+    For each pair (e.g., HVDC-Min, HVDC-Max), it computes:
+    (Param_Max - Param_Min) / Baseline
+    
+    It then returns the average of these values for each row.
+    """
+    baseline = df[baseline_col]
+    epsilon = 1e-9  # To prevent division by zero
+
+    all_param_sensitivities = pd.DataFrame()
+
+    for param, (min_col, max_col) in param_pairs.items():
+        if min_col in df.columns and max_col in df.columns:
+            param_range = df[max_col] - df[min_col]
+            all_param_sensitivities[param] = param_range / (baseline + epsilon)
+
+    return all_param_sensitivities.mean(axis=1)
+
+def find_disappearing_scenario(row, sensitivity_cols):
+    """
+    Checks if a line's capacity (stock) is negligible in any scenario 
+    and returns a descriptive label. A threshold of 0.1 GW is used.
+    """
+    for col in sensitivity_cols:
+        if row[col] < 0.1:  # Threshold for negligible capacity
+            return "IC disappears in one or more cases"
+    return None
+
+
 def create_stock_sensitivity_figure():
     """
     Generates and returns the complete sensitivity map figure for 'Stock'.
-    This function is self-contained and ready for Streamlit.
+    This version uses the average parameter sensitivity calculation and advanced line labeling.
     """
     # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
@@ -301,6 +344,16 @@ def create_stock_sensitivity_figure():
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
     SENSITIVITY_COLUMNS = COLUMN_HEADERS[1:]
+
+    # Define parameter pairs for the sensitivity calculation
+    PARAMETER_PAIRS = {
+        'HVDC': ('HVDC-Min', 'HVDC-Max'),
+        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
+        'ED': ('ED-Min', 'ED-Max'),
+        'EP': ('EP-Min', 'EP-Max'),
+        'WACC': ('WACC-Min', 'WACC-Max'),
+        'OWF-S': ('OWF-S-Min', 'OWF-S-Max')
+    }
 
     # Common file paths and settings
     excel_file_locations = "manual input/Hub locations input.xlsx"
@@ -312,9 +365,9 @@ def create_stock_sensitivity_figure():
     land_shapefile = "data/naturalearth/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp"
     bbox = (-2, 51, 10, 60)
     output_directory = "output/visualisation/"
-    os.makedirs(output_directory, exist_ok=True) # Good practice to keep this
+    os.makedirs(output_directory, exist_ok=True)
 
-    # --- Helper Functions (can be defined inside or outside the main function) ---
+    # --- Scaling and other Helper Functions ---
     def scale_line_thickness(capacity_gw, data_min=0, data_max=20, viz_min=5, viz_max=35.0):
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
@@ -332,9 +385,11 @@ def create_stock_sensitivity_figure():
         ax.plot(x_pos, y_pos - size_val * 0.75, 'o', color='black', markersize=size_val * 100,
                 transform=ax.transAxes, fillstyle='none')
 
-    # This part was your 'generate_sensitivity_map' function, slightly adapted
+    # This part was your 'generate_sensitivity_map' function, now fully updated
     def build_map_on_axes(ax):
         excel_file_path = f"manual input/{SENSITIVITY_FILE}.xlsx"
+        
+        # --- Read Location and Base Data ---
         df_locations_all = pd.read_excel(excel_file_locations, sheet_name=sheet_name_NSGorDirect)
         gdf_all_points = gpd.GeoDataFrame(
             df_locations_all,
@@ -343,6 +398,7 @@ def create_stock_sensitivity_figure():
         )
         gdf_all_points['label'] = gdf_all_points['label'].astype(str).str.strip()
 
+        # --- Process Line Data (Interconnectors) ---
         df_lines_raw = pd.read_excel(excel_file_path, sheet_name=sheet_name_line_capacity)
         for col in COLUMN_HEADERS:
             if col in df_lines_raw.columns:
@@ -352,14 +408,16 @@ def create_stock_sensitivity_figure():
             lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
         )
         df_lines_agg = df_lines_raw.groupby('pair_key', as_index=False)[COLUMN_HEADERS].max()
-        baseline_lines = df_lines_agg['Baseline']
-        min_vals_lines = df_lines_agg[COLUMN_HEADERS].min(axis=1)
-        max_vals_lines = df_lines_agg[COLUMN_HEADERS].max(axis=1)
-        epsilon = 1e-9
-        df_lines_agg['sensitivity'] = (max_vals_lines - min_vals_lines) / (baseline_lines + epsilon)
+        
+        # *** MODIFIED SENSITIVITY CALCULATION & LABELING ***
+        df_lines_agg['sensitivity'] = calculate_avg_parameter_sensitivity(df_lines_agg, 'Baseline', PARAMETER_PAIRS)
         df_lines_agg['thickness'] = df_lines_agg['Baseline'].apply(scale_line_thickness)
         df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(), index=df_lines_agg.index)
+        df_lines_agg['disappearance_label'] = df_lines_agg.apply(
+            lambda row: find_disappearing_scenario(row, SENSITIVITY_COLUMNS), axis=1
+        )
 
+        # --- Process Point Data (Hubs) ---
         df_points_raw = pd.read_excel(excel_file_path, sheet_name=sheet_name_point_size)
         for col in COLUMN_HEADERS:
             if col in df_points_raw.columns:
@@ -367,12 +425,12 @@ def create_stock_sensitivity_figure():
         df_points_raw[COLUMN_HEADERS] = df_points_raw[COLUMN_HEADERS].fillna(0)
         df_points_raw = df_points_raw.rename(columns={'DistPointA': 'label'})
         df_points_raw['label'] = df_points_raw['label'].astype(str).str.strip()
-        baseline_points = df_points_raw['Baseline']
-        min_vals_points = df_points_raw[COLUMN_HEADERS].min(axis=1)
-        max_vals_points = df_points_raw[COLUMN_HEADERS].max(axis=1)
-        df_points_raw['sensitivity'] = (max_vals_points - min_vals_points) / (baseline_points + epsilon)
+        
+        # *** MODIFIED SENSITIVITY CALCULATION ***
+        df_points_raw['sensitivity'] = calculate_avg_parameter_sensitivity(df_points_raw, 'Baseline', PARAMETER_PAIRS)
         df_points_raw['size'] = df_points_raw['Baseline'].apply(scale_point_size)
 
+        # --- Prepare Geodataframes for Plotting ---
         lines_data, connected_points_labels = [], set()
         for _, row in df_lines_agg.iterrows():
             point_a = gdf_all_points[gdf_all_points['label'] == row['DistPointA']]
@@ -381,23 +439,42 @@ def create_stock_sensitivity_figure():
                 lines_data.append({
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
-                    'sensitivity': row['sensitivity']
+                    'sensitivity': row['sensitivity'],
+                    'disappearance_label': row['disappearance_label'] # Pass the new label
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
+        
         gdf_points_to_plot = gdf_all_points[gdf_all_points['label'].isin(connected_points_labels)].copy()
         gdf_points_to_plot = gdf_points_to_plot.merge(df_points_raw[['label', 'Baseline', 'sensitivity', 'size']], on='label', how='left')
         gdf_points_to_plot.fillna(0, inplace=True)
 
+        # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        norm = mcolors.Normalize(vmin=0, vmax=1.0)
+        norm = mcolors.Normalize(vmin=0, vmax=1.0) # Adjust vmax as needed based on data
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
         land.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.5)
         eez.boundary.plot(ax=ax, color='black', linewidth=0.6, linestyle='--')
+        
         if not gdf_lines.empty:
             gdf_lines.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm, linewidth=gdf_lines['thickness'], zorder=4)
+            # *** ADDED: Loop for line labels ***
+            for _, row in gdf_lines.iterrows():
+                if row['geometry']:
+                    midpoint = row.geometry.centroid
+                    fontsize = 10
+                    # Check if the special label exists, otherwise use the numeric sensitivity
+                    if pd.notna(row['disappearance_label']):
+                        label_text = row['disappearance_label']
+                        fontsize = 10  # Use a specific font size for the descriptive text
+                    else:
+                        label_text = f"sens: {row['sensitivity']:.2f}"
+                    
+                    ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
+                            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
+
         if not gdf_points_to_plot.empty:
             gdf_points_to_plot.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm,
                                     markersize=gdf_points_to_plot['size'], zorder=5,
@@ -406,6 +483,7 @@ def create_stock_sensitivity_figure():
                 label_text = f"{row['label']}\n({row['Baseline']:.0f} GW)" if row['Baseline'] > 0 else row['label']
                 ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
+        
         draw_compass(ax)
         ax.set_xlim(bbox[0], bbox[2]); ax.set_ylim(bbox[1], bbox[3])
         ax.set_title("Sensitivity of North Sea Infrastructure Capacity (Stock)", fontsize=20, pad=20)
@@ -413,18 +491,18 @@ def create_stock_sensitivity_figure():
         return cmap, norm
 
     # --- MAIN EXECUTION PART OF THE FUNCTION ---
-    # 1. Create the figure and axes
     fig, ax = plt.subplots(figsize=(15, 15))
     plt.subplots_adjust(left=0.05, right=0.85, top=0.95, bottom=0.05)
 
-    # 2. Call the helper function to draw the map on the axes
     cmap, norm = build_map_on_axes(ax)
 
-    # 3. Create Legends on the figure
+    # --- Create Legends ---
     cbar_ax = fig.add_axes([0.87, 0.25, 0.03, 0.5])
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.set_label('Sensitivity\n(Total Result Range / Baseline)', fontsize=12, rotation=270, labelpad=25)
+    
+    # *** MODIFIED: Updated color bar label ***
+    cbar.set_label('Average Parameter Sensitivity\nAvg. [ (Max - Min) / Baseline ]', fontsize=12, rotation=270, labelpad=25)
 
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(5), label='5GW Interconnection'),
@@ -433,8 +511,8 @@ def create_stock_sensitivity_figure():
     ]
     ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Capacity Legend")
 
-    # 4. CRITICAL STEP: Return the figure object
     return fig
+
 
 def create_stock_sensitivity_per_case():
     # --- Configuration ---
