@@ -69,6 +69,8 @@ def load_all_data():
 # ================================================================
 
 def create_use_sensitivity_figure():
+
+
     # SENSITIVITY ANALYSIS VISUALIZATION - USE
     #
     # --- DESCRIPTION ---
@@ -102,6 +104,7 @@ def create_use_sensitivity_figure():
     # Create output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
 
+
     # --- Scaling Functions ---
     def scale_line_thickness(capacity_gw, data_min=0, data_max=1000, viz_min=5, viz_max=60.0):
         """Scales line thickness based on Baseline Use in PJ."""
@@ -109,11 +112,13 @@ def create_use_sensitivity_figure():
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
 
+
     def scale_point_size(power_stock_gw, data_min=0, data_max=1000, viz_min=50, viz_max=4000):
         """Scales point size based on Baseline Use in PJ."""
         if pd.isna(power_stock_gw) or power_stock_gw <= data_min: return 0.0
         if power_stock_gw >= data_max: return viz_max
         return viz_min + ((power_stock_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
+
 
     def draw_compass(ax, x_pos=0.97, y_pos=0.97, size_val=0.05):
         """Draws a compass rose on the given axes."""
@@ -123,12 +128,16 @@ def create_use_sensitivity_figure():
         ax.plot(x_pos, y_pos - size_val * 0.75, 'o', color='black', markersize=size_val * 100,
                 transform=ax.transAxes, fillstyle='none')
 
+
     def find_disappearing_scenario(row, sensitivity_cols):
         """Checks if a line's use is negligible in any scenario and returns a descriptive label."""
         for col in sensitivity_cols:
             if row[col] < 0.1:  # Threshold for being considered 'disappeared'
+                # Make scenario names more readable for the label
+                # scenario_name = col.replace('-', ' ').replace('Min', 'Min').replace('Max', 'Max')
                 return f"IC disappears in one or more cases"
         return None
+
 
     def generate_sensitivity_map(ax):
         """
@@ -157,18 +166,15 @@ def create_use_sensitivity_figure():
         )
         df_lines_agg = df_lines_raw.groupby('pair_key', as_index=False)[COLUMN_HEADERS].max()
 
-        # --- Calculate Sensitivity (MODIFIED) ---
+        # --- Calculate Sensitivity and Check for Disappearance ---
         baseline_lines = df_lines_agg['Baseline']
+        min_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].min(axis=1)
+        max_vals_lines = df_lines_agg[SENSITIVITY_COLUMNS].max(axis=1)
         epsilon = 1e-9
-
-        # Calculate the absolute difference for each sensitivity column, divide by baseline, then average
-        sensitivity_components_lines = pd.DataFrame()
-        for col in SENSITIVITY_COLUMNS:
-            sensitivity_components_lines[col] = np.abs(df_lines_agg[col] - baseline_lines) / (baseline_lines + epsilon)
-        df_lines_agg['sensitivity'] = sensitivity_components_lines.mean(axis=1) # Average of the individual sensitivities
-
+        df_lines_agg['sensitivity'] = (max_vals_lines - min_vals_lines) / (baseline_lines + epsilon)
         df_lines_agg['thickness'] = df_lines_agg['Baseline'].apply(scale_line_thickness)
-        df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(), index=df_lines_agg.index)
+        df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(),
+                                                                  index=df_lines_agg.index)
 
         # --- MODIFICATION: Generate the special label for disappearing interconnectors ---
         df_lines_agg['disappearance_label'] = df_lines_agg.apply(
@@ -184,15 +190,11 @@ def create_use_sensitivity_figure():
         df_points_raw[COLUMN_HEADERS] = df_points_raw[COLUMN_HEADERS].fillna(0)
 
         df_points_raw = df_points_raw.rename(columns={'DistPointA': 'label'})
-        df_points_raw['label'] = df_points_raw['label'].astype(str).strip()
+        df_points_raw['label'] = df_points_raw['label'].astype(str).str.strip()
         baseline_points = df_points_raw['Baseline']
-
-        # Calculate Sensitivity for points (MODIFIED)
-        sensitivity_components_points = pd.DataFrame()
-        for col in SENSITIVITY_COLUMNS:
-            sensitivity_components_points[col] = np.abs(df_points_raw[col] - baseline_points) / (baseline_points + epsilon)
-        df_points_raw['sensitivity'] = sensitivity_components_points.mean(axis=1) # Average of the individual sensitivities
-
+        min_vals_points = df_points_raw[SENSITIVITY_COLUMNS].min(axis=1)
+        max_vals_points = df_points_raw[SENSITIVITY_COLUMNS].max(axis=1)
+        df_points_raw['sensitivity'] = (max_vals_points - min_vals_points) / (baseline_points + epsilon)
         df_points_raw['size'] = df_points_raw['Baseline'].apply(scale_point_size)
 
         # --- Prepare Geodataframes for Plotting ---
@@ -205,20 +207,19 @@ def create_use_sensitivity_figure():
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
-                    'disappearance_label': row['disappearance_label'] # Pass the new label
+                    'disappearance_label': row['disappearance_label']  # Pass the new label
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
 
         gdf_points_to_plot = gdf_all_points[gdf_all_points['label'].isin(connected_points_labels)].copy()
-        gdf_points_to_plot = gdf_points_to_plot.merge(df_points_raw[['label', 'Baseline', 'sensitivity', 'size']], on='label', how='left')
+        gdf_points_to_plot = gdf_points_to_plot.merge(df_points_raw[['label', 'Baseline', 'sensitivity', 'size']],
+                                                      on='label', how='left')
         gdf_points_to_plot.fillna(0, inplace=True)
 
         # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        # The maximum value for normalization might need adjustment based on typical average sensitivities
-        # A vmax of 1.0 or 2.0 is usually a good starting point for relative sensitivities.
-        norm = mcolors.Normalize(vmin=0, vmax=1.0) # Adjusted vmax to 1.0 as average sensitivity often stays lower
+        norm = mcolors.Normalize(vmin=0, vmax=2.0)
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
@@ -227,7 +228,8 @@ def create_use_sensitivity_figure():
 
         # Plot Lines and Points
         if not gdf_lines.empty:
-            gdf_lines.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm, linewidth=gdf_lines['thickness'], zorder=4)
+            gdf_lines.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm, linewidth=gdf_lines['thickness'],
+                           zorder=4)
             # --- MODIFICATION: Add conditional labels for line sensitivity ---
             for _, row in gdf_lines.iterrows():
                 if row['geometry']:
@@ -254,10 +256,13 @@ def create_use_sensitivity_figure():
 
         # Final map settings
         draw_compass(ax)
-        ax.set_xlim(bbox[0], bbox[2]); ax.set_ylim(bbox[1], bbox[3])
-        ax.set_title("Sensitivity of North Sea Infrastructure Use (Average Sensitivity)", fontsize=20, pad=20) # Title updated
-        ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
+        ax.set_xlim(bbox[0], bbox[2]);
+        ax.set_ylim(bbox[1], bbox[3])
+        ax.set_title("Sensitivity of North Sea Infrastructure Use", fontsize=20, pad=20)
+        ax.set_xlabel("Longitude");
+        ax.set_ylabel("Latitude")
         return cmap, norm
+
 
     # --- Main Script Execution ---
     fig, ax = plt.subplots(figsize=(15, 15))
@@ -269,8 +274,7 @@ def create_use_sensitivity_figure():
     cbar_ax = fig.add_axes([0.87, 0.25, 0.03, 0.5])
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    # Label updated to reflect average sensitivity calculation
-    cbar.set_label('Average Sensitivity\n(Avg Abs Relative Change from Baseline)', fontsize=12, rotation=270, labelpad=25)
+    cbar.set_label('Sensitivity\n(Total Result Range / Baseline)', fontsize=12, rotation=270, labelpad=25)
 
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(100), label='100PJ Interconnection'),
