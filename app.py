@@ -997,6 +997,8 @@ def build_interconnection_summary_table(df_stock, df_use):
 
     # Sort and set index
     merged.sort_values(by='pair_key', inplace=True)
+    # Format pair_key from tuple to "A <-> B"
+    merged['pair_key'] = merged['pair_key'].apply(lambda pair: f"{pair[0]} <-> {pair[1]}")
     merged.set_index('pair_key', inplace=True)
 
     return merged
