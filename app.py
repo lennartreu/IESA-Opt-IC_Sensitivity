@@ -129,7 +129,7 @@ def create_use_sensitivity_figure():
             if row[col] < 0.1:  # Threshold for being considered 'disappeared'
                 # Make scenario names more readable for the label
                 scenario_name = col.replace('-', ' ').replace('Min', 'Min').replace('Max', 'Max')
-                return f"IC disappears in {scenario_name} case"
+                return f"IC disappears in one or more cases"
         return None
     
     def generate_sensitivity_map(ax):
