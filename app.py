@@ -226,7 +226,7 @@ def create_use_sensitivity_figure():
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
                     'disappearance_label': row['disappearance_label'],
-                    'baseline_value': row['Baseline']
+                    'Baseline': row['Baseline']
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
@@ -251,6 +251,7 @@ def create_use_sensitivity_figure():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
                     fontsize = 10
+                    baseline_value = row['Baseline']
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
                         fontsize = 10
@@ -432,6 +433,7 @@ def create_stock_sensitivity_figure():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
                     fontsize = 10
+                    baseline_value = row['Baseline']
                     # Check if the special label exists, otherwise use the numeric sensitivity
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
