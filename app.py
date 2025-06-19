@@ -948,7 +948,6 @@ def create_individual_case_figure(case_name):
     return fig
 
 
-
 def build_interconnection_summary_table(df_stock, df_use):
     """
     Constructs a summary table of interconnections, labeling disappearing cases and 
@@ -978,18 +977,30 @@ def build_interconnection_summary_table(df_stock, df_use):
     # Merge on pair_key
     merged = pd.merge(stock_summary, use_summary, on='pair_key', how='outer')
 
-
-
     # Label high sensitivities as disappearing
+    def label_disappearance(value):
+        if pd.isna(value):
+            return value
+        return "IC disappears in one or more cases" if value > 5 else round(value, 2)
 
-def label_disappearance(value):
-    try:
-        value = float(value)
-        if value > 5:
-            return "IC disappears in one or more cases"
-        return round(value, 2)
-    except (ValueError, TypeError):
-        return None
+    merged['Avg Stock Sensitivity'] = merged['Avg Stock Sensitivity'].apply(label_disappearance)
+    merged['Avg Use Sensitivity'] = merged['Avg Use Sensitivity'].apply(label_disappearance)
+
+    # Drop rows where either sensitivity is missing
+    merged = merged.dropna(subset=['Avg Stock Sensitivity', 'Avg Use Sensitivity'])
+
+    # Drop rows where either sensitivity became 'None' due to NaN (e.g. before labeling)
+    merged = merged[
+        ~merged['Avg Stock Sensitivity'].astype(str).str.lower().eq('none') &
+        ~merged['Avg Use Sensitivity'].astype(str).str.lower().eq('none')
+    ]
+
+    # Sort and set index
+    merged.sort_values(by='pair_key', inplace=True)
+    merged.set_index('pair_key', inplace=True)
+
+    return merged
+
 
 
 
