@@ -94,8 +94,8 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
     for param, (min_col, max_col) in param_pairs.items():
         if min_col in df.columns and max_col in df.columns:
-            param_range = df[max_col] - df[min_col]
-            all_param_sensitivities[param] = abs(param_range) / (baseline + epsilon)
+            param_range = abs((df[max_col] - df[baseline_col])/df[baseline_col]) + abs((df[min_col] - df[baseline_col])/df[baseline_col])
+            all_param_sensitivities[param] = param_range / 2
 
     return all_param_sensitivities.mean(axis=1)
 
