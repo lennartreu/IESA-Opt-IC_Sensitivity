@@ -399,7 +399,7 @@ def create_stock_sensitivity_figure():
         for _, row in df_lines_agg.iterrows():
             point_a = gdf_all_points[gdf_all_points['label'] == row['DistPointA']]
             point_b = gdf_all_points[gdf_all_points['label'] == row['DistPointB']]
-            if not point_a.empty and not point_b.empty:
+            if not point_a.empty and not point_b.empty and row['thickness'] > 0:
                 lines_data.append({
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
