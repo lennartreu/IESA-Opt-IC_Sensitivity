@@ -229,11 +229,11 @@ def create_use_sensitivity_figure():
             for _, row in gdf_lines.iterrows():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
-                    fontsize = 10
+                    fontsize = 11
                     baseline_value = row['Baseline']
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
-                        fontsize = 10
+                        fontsize = 11
                     else:
                         label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} PJ)"
 
@@ -246,7 +246,7 @@ def create_use_sensitivity_figure():
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
                 label_text = f"{row['label']}\n({row['Baseline']:.0f} PJ)" if row['Baseline'] > 0 else row['label']
-                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=11, ha='center',
+                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
 
         draw_compass(ax)
@@ -411,12 +411,12 @@ def create_stock_sensitivity_figure():
             for _, row in gdf_lines.iterrows():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
-                    fontsize = 10
+                    fontsize = 11
                     baseline_value = row['Baseline']
                     # Check if the special label exists, otherwise use the numeric sensitivity
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
-                        fontsize = 10  # Use a specific font size for the descriptive text
+                        fontsize = 11  # Use a specific font size for the descriptive text
                     else:
                         label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} GW"
                         
@@ -430,7 +430,7 @@ def create_stock_sensitivity_figure():
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
                 label_text = f"{row['label']}\n({row['Baseline']:.0f} GW)" if row['Baseline'] > 0 else row['label']
-                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=11, ha='center',
+                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
         
         draw_compass(ax)
