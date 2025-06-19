@@ -70,23 +70,7 @@ def load_all_data():
 
 # --- New helper function for the requested sensitivity calculation ---
 def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
-    """
-    Calculates the average sensitivity across specified parameter pairs.
 
-    For each pair (e.g., HVDC-Min, HVDC-Max), it computes:
-    (Param_Max - Param_Min) / Baseline
-    
-    It then returns the average of these values for each row.
-
-    Args:
-        df (pd.DataFrame): The input DataFrame.
-        baseline_col (str): The name of the baseline column.
-        param_pairs (dict): A dictionary where keys are parameter names 
-                            and values are tuples of (min_col, max_col).
-
-    Returns:
-        pd.Series: A series containing the average parameter sensitivity.
-    """
     baseline = df[baseline_col]
     epsilon = 1e-9  # To prevent division by zero
 
@@ -963,6 +947,99 @@ def create_individual_case_figure(case_name):
 
     return fig
 
+def build_interconnection_summary_table(df_stock, df_use):
+    """
+    Constructs a summary table for interconnections with average sensitivity and baseline values.
+    
+    Args:
+        df_stock (pd.DataFrame): Stock interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
+        df_use (pd.DataFrame): Use interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
+    
+    Returns:
+        pd.DataFrame: A merged summary table suitable for display in Streamlit.
+    """
+    # Ensure only necessary columns are kept
+    stock_summary = df_stock[['pair_key', 'sensitivity', 'Baseline']].copy()
+    use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
+
+    # Rename columns for clarity
+    stock_summary.rename(columns={
+        'sensitivity': 'Avg Stock Sensitivity',
+        'Baseline': 'Stock Baseline'
+    }, inplace=True)
+    
+    use_summary.rename(columns={
+        'sensitivity': 'Avg Use Sensitivity',
+        'Baseline': 'Use Baseline'
+    }, inplace=True)
+
+    # Merge the two summaries on 'pair_key'
+    merged_summary = pd.merge(stock_summary, use_summary, on='pair_key', how='outer')
+
+    # Sort by interconnection name
+    merged_summary.sort_values(by='pair_key', inplace=True)
+    merged_summary.set_index('pair_key', inplace=True)
+
+    return merged_summary
+
+def compute_stock_sensitivity_lines():
+    """
+    Loads and computes stock sensitivity and baseline values per interconnection.
+    
+    Returns:
+        pd.DataFrame: DataFrame with 'pair_key', 'sensitivity', and 'Baseline' columns.
+    """
+    _, df_line_capacity_all, _, _ = load_all_data()
+    
+    PARAMETER_PAIRS = {
+        'HVDC': ('HVDC-Min', 'HVDC-Max'),
+        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
+        'ED': ('ED-Min', 'ED-Max'),
+        'EP': ('EP-Min', 'EP-Max'),
+        'WACC': ('WACC-Min', 'WACC-Max'),
+        'OWF-S': ('OWF-S-Min', 'OWF-S-Max')
+    }
+
+    df_line_capacity_all['pair_key'] = df_line_capacity_all.apply(
+        lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
+    )
+
+    df_lines_stock = df_line_capacity_all.groupby('pair_key', as_index=False).agg({
+        **{col: 'max' for col in ['Baseline'] + [c for pair in PARAMETER_PAIRS.values() for c in pair]}
+    })
+
+    df_lines_stock['sensitivity'] = calculate_avg_parameter_sensitivity(df_lines_stock, 'Baseline', PARAMETER_PAIRS)
+    return df_lines_stock[['pair_key', 'sensitivity', 'Baseline']]
+
+def compute_use_sensitivity_lines():
+    """
+    Loads and computes use sensitivity and baseline values per interconnection.
+    
+    Returns:
+        pd.DataFrame: DataFrame with 'pair_key', 'sensitivity', and 'Baseline' columns.
+    """
+    _, _, _, df_line_use_all = load_all_data()
+    
+    PARAMETER_PAIRS = {
+        'HVDC': ('HVDC-Min', 'HVDC-Max'),
+        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
+        'ED': ('ED-Min', 'ED-Max'),
+        'EP': ('EP-Min', 'EP-Max'),
+        'WACC': ('WACC-Min', 'WACC-Max'),
+        'OWF-S': ('OWF-S-Min', 'OWF-S-Max')
+    }
+
+    df_line_use_all['pair_key'] = df_line_use_all.apply(
+        lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
+    )
+
+    df_lines_use = df_line_use_all.groupby('pair_key', as_index=False).agg({
+        **{col: 'max' for col in ['Baseline'] + [c for pair in PARAMETER_PAIRS.values() for c in pair]}
+    })
+
+    df_lines_use['sensitivity'] = calculate_avg_parameter_sensitivity(df_lines_use, 'Baseline', PARAMETER_PAIRS)
+    return df_lines_use[['pair_key', 'sensitivity', 'Baseline']]
+
 
 
 # =============================================================================
@@ -978,7 +1055,8 @@ vis_options = [
     "Overall Sensitivity of System Use (Use)",
     "Capacity Sensitivity per Parameter",
     "Use Sensitivity per Parameter",
-    "Detailed Map per Case (Stock & Capacity Factor)"
+    "Detailed Map per Case (Stock & Capacity Factor)",
+    "Table: IC Sensitivity Overview"
 ]
 plot_choice = st.sidebar.selectbox(
     "Choose which analysis to display:",
@@ -1037,8 +1115,15 @@ elif plot_choice == "Detailed Map per Case (Stock & Capacity Factor)":
         fig = create_individual_case_figure(case_selection)
         st.pyplot(fig)
 
+elif plot_choice == "Table: IC Sensitivity Overview":
 
-
+    # Compute data
+    df_lines_stock = compute_stock_sensitivity_lines()
+    df_lines_use = compute_use_sensitivity_lines()
+    
+    # Build and display summary
+    summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
+    st.dataframe(summary_table.style.format("{:.2f}"), use_container_width=True)
 
 else:
     st.write("Please select a visualization from the sidebar to begin.")
