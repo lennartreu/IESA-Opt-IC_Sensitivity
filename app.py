@@ -99,6 +99,12 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
     return all_param_sensitivities.mean(axis=1)
 
+def find_disappearing_scenario(row, sensitivity_cols):
+        for col in sensitivity_cols:
+            if row[col] < 0.1:
+                return "IC disappears in one or more cases"
+        return None
+
 
 def create_use_sensitivity_figure():
     # SENSITIVITY ANALYSIS VISUALIZATION - USE
@@ -288,48 +294,6 @@ def create_use_sensitivity_figure():
     ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Use Legend")
 
     return fig
-
-Python
-import pandas as pd
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from matplotlib.lines import Line2D
-from shapely.geometry import LineString, Point
-import os
-
-# --- Helper Functions ---
-
-def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
-    """
-    Calculates the average sensitivity across specified parameter pairs.
-
-    For each pair (e.g., HVDC-Min, HVDC-Max), it computes:
-    (Param_Max - Param_Min) / Baseline
-    
-    It then returns the average of these values for each row.
-    """
-    baseline = df[baseline_col]
-    epsilon = 1e-9  # To prevent division by zero
-
-    all_param_sensitivities = pd.DataFrame()
-
-    for param, (min_col, max_col) in param_pairs.items():
-        if min_col in df.columns and max_col in df.columns:
-            param_range = df[max_col] - df[min_col]
-            all_param_sensitivities[param] = param_range / (baseline + epsilon)
-
-    return all_param_sensitivities.mean(axis=1)
-
-def find_disappearing_scenario(row, sensitivity_cols):
-    """
-    Checks if a line's capacity (stock) is negligible in any scenario 
-    and returns a descriptive label. A threshold of 0.1 GW is used.
-    """
-    for col in sensitivity_cols:
-        if row[col] < 0.1:  # Threshold for negligible capacity
-            return "IC disappears in one or more cases"
-    return None
 
 
 def create_stock_sensitivity_figure():
