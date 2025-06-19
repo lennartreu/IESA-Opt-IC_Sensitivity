@@ -226,7 +226,7 @@ def create_use_sensitivity_figure():
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
                     'disappearance_label': row['disappearance_label'],
-                    'Baseline': row['Baseline']
+                    'baseline_value': row['Baseline']
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
         gdf_lines = gpd.GeoDataFrame(lines_data, crs="EPSG:4326")
