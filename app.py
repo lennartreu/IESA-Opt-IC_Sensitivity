@@ -225,7 +225,7 @@ def create_use_sensitivity_figure():
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
-                    'disappearance_label': row['disappearance_label']
+                    'disappearance_label': row['disappearance_label'],
                     'Baseline': row['Baseline']
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
@@ -406,7 +406,7 @@ def create_stock_sensitivity_figure():
                     'geometry': LineString([point_a.geometry.iloc[0], point_b.geometry.iloc[0]]),
                     'thickness': row['thickness'],
                     'sensitivity': row['sensitivity'],
-                    'disappearance_label': row['disappearance_label'] 
+                    'disappearance_label': row['disappearance_label'], 
                     'Baseline': row['Baseline']# Pass the new label
                 })
                 connected_points_labels.update([row['DistPointA'], row['DistPointB']])
