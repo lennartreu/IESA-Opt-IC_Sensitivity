@@ -287,7 +287,7 @@ def create_use_sensitivity_figure():
     cbar = fig.colorbar(sm, cax=cbar_ax)
 
     # *** MODIFIED LABEL ***
-    cbar.set_label('Average Parameter Sensitivity\nAvg. [ (Max - Min) / Baseline ]', fontsize=12, rotation=270, labelpad=25)
+    cbar.set_label('Average Parameter Sensitivity', fontsize=12, rotation=270, labelpad=25)
     
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(100), label='100PJ Interconnection'),
@@ -472,7 +472,7 @@ def create_stock_sensitivity_figure():
     cbar = fig.colorbar(sm, cax=cbar_ax)
     
     # *** MODIFIED: Updated color bar label ***
-    cbar.set_label('Average Parameter Sensitivity\nAvg. [ (Max - Min) / Baseline ]', fontsize=12, rotation=270, labelpad=25)
+    cbar.set_label('Average Parameter Sensitivity', fontsize=12, rotation=270, labelpad=25)
 
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(5), label='5GW Interconnection'),
