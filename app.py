@@ -85,7 +85,7 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
 def find_disappearing_scenario(row, sensitivity_cols):
         for col in sensitivity_cols:
-            if row[col] < 0.01:
+            if row[col] < 0.1:
                 return "IC disappears in one or more cases"
         return None
 
