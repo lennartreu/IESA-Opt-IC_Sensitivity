@@ -532,7 +532,7 @@ def create_stock_sensitivity_per_case():
         all_case_cols = case_cols + ['Baseline']
         min_vals = df[all_case_cols].min(axis=1)
         max_vals = df[all_case_cols].max(axis=1)
-        sensitivity = (max_vals - min_vals) / (df['Baseline'] + epsilon)
+        sensitivity = (abs((max_vals - df['Baseline'])/ df['Baseline'] ) + abs((min_vals - df['Baseline'])/ df['Baseline'] )) / 2
         return sensitivity.clip(0)  # Sensitivity cannot be negative
 
     def generate_map_for_case(ax, title, case_cols, df_lines_agg, df_points_raw, gdf_all_points, cmap, norm,
@@ -714,7 +714,7 @@ def create_use_sensitivity_per_case():
         all_case_cols = case_cols + ['Baseline']
         min_vals = df[all_case_cols].min(axis=1)
         max_vals = df[all_case_cols].max(axis=1)
-        sensitivity = (max_vals - min_vals) / (df['Baseline'] + epsilon)
+        sensitivity = (abs((max_vals - df['Baseline'])/ df['Baseline'] ) + abs((min_vals - df['Baseline'])/ df['Baseline'] )) / 2
         return sensitivity.clip(0)  # Sensitivity cannot be negative
 
     def generate_map_for_case(ax, title, case_cols, df_lines_agg, df_points_raw, gdf_all_points, cmap, norm,
