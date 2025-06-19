@@ -1169,7 +1169,13 @@ elif plot_choice == "Table: IC Sensitivity Overview":
     
     # Build and display summary
     summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
-    st.dataframe(summary_table, use_container_width=True)
+    # st.dataframe(summary_table, use_container_width=True)
+    st.dataframe(
+    summary_table.style.format({
+        "Stock Baseline": "{:.2f}",
+        "Use Baseline": "{:.2f}"
+    }, use_container_width=True)
+)
 
 
 else:
