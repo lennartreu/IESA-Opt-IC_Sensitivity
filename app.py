@@ -948,30 +948,58 @@ def create_individual_case_figure(case_name):
     return fig
 
 def build_interconnection_summary_table(df_stock, df_use):
-
-    # Ensure only necessary columns are kept
+    """
+    Constructs a summary table of interconnections, labeling disappearing cases and 
+    excluding entries with missing data.
+    
+    Args:
+        df_stock (pd.DataFrame): Stock interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
+        df_use (pd.DataFrame): Use interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
+    
+    Returns:
+        pd.DataFrame: Cleaned and labeled summary table.
+    """
+    # Prepare stock summary
     stock_summary = df_stock[['pair_key', 'sensitivity', 'Baseline']].copy()
-    use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
-
-    # Rename columns for clarity
     stock_summary.rename(columns={
         'sensitivity': 'Avg Stock Sensitivity',
-        'Baseline': 'Stock Baseline [GW]'
+        'Baseline': 'Stock Baseline'
     }, inplace=True)
-    
+
+    # Prepare use summary
+    use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
     use_summary.rename(columns={
         'sensitivity': 'Avg Use Sensitivity',
-        'Baseline': 'Use Baseline [PJ]'
+        'Baseline': 'Use Baseline'
     }, inplace=True)
 
-    # Merge the two summaries on 'pair_key'
-    merged_summary = pd.merge(stock_summary, use_summary, on='pair_key', how='outer')
+    # Merge on pair_key
+    merged = pd.merge(stock_summary, use_summary, on='pair_key', how='outer')
 
-    # Sort by interconnection name
-    merged_summary.sort_values(by='pair_key', inplace=True)
-    merged_summary.set_index('pair_key', inplace=True)
+    # Label high sensitivities as disappearing
+    def label_disappearance(value):
+        if pd.isna(value):
+            return value
+        return "IC disappears in one or more cases" if value > 5 else round(value, 2)
 
-    return merged_summary
+    merged['Avg Stock Sensitivity'] = merged['Avg Stock Sensitivity'].apply(label_disappearance)
+    merged['Avg Use Sensitivity'] = merged['Avg Use Sensitivity'].apply(label_disappearance)
+
+    # Drop rows where either sensitivity is missing
+    merged = merged.dropna(subset=['Avg Stock Sensitivity', 'Avg Use Sensitivity'])
+
+    # Drop rows where either sensitivity became 'None' due to NaN (e.g. before labeling)
+    merged = merged[
+        ~merged['Avg Stock Sensitivity'].astype(str).str.lower().eq('none') &
+        ~merged['Avg Use Sensitivity'].astype(str).str.lower().eq('none')
+    ]
+
+    # Sort and set index
+    merged.sort_values(by='pair_key', inplace=True)
+    merged.set_index('pair_key', inplace=True)
+
+    return merged
+
 
 def compute_stock_sensitivity_lines():
     """
