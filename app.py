@@ -1174,8 +1174,10 @@ elif plot_choice == "Table: IC Sensitivity Overview":
     summary_table.style.format({
         "Stock Baseline": "{:.2f}",
         "Use Baseline": "{:.2f}"
-    }, use_container_width=True)
-)
+    }),
+    use_container_width=True
+    )
+
 
 
 else:
