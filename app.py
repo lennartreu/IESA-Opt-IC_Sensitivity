@@ -981,9 +981,9 @@ def build_interconnection_summary_table(df_stock, df_use):
     # Label high sensitivities as disappearing
 
 def label_disappearance(value):
-        if pd.isna(value):
-            return value
-        return "IC disappears in one or more cases" if value > 5 else round(value, 2)
+    if pd.isna(value):
+         return value
+    return "IC disappears in one or more cases" if value > 5 else round(value, 2)
 
     merged['Avg Stock Sensitivity'] = merged['Avg Stock Sensitivity'].apply(label_disappearance)
     merged['Avg Use Sensitivity'] = merged['Avg Use Sensitivity'].apply(label_disappearance)
