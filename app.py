@@ -948,16 +948,7 @@ def create_individual_case_figure(case_name):
     return fig
 
 def build_interconnection_summary_table(df_stock, df_use):
-    """
-    Constructs a summary table for interconnections with average sensitivity and baseline values.
-    
-    Args:
-        df_stock (pd.DataFrame): Stock interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
-        df_use (pd.DataFrame): Use interconnection data with 'pair_key', 'sensitivity', and 'Baseline'.
-    
-    Returns:
-        pd.DataFrame: A merged summary table suitable for display in Streamlit.
-    """
+
     # Ensure only necessary columns are kept
     stock_summary = df_stock[['pair_key', 'sensitivity', 'Baseline']].copy()
     use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
@@ -965,12 +956,12 @@ def build_interconnection_summary_table(df_stock, df_use):
     # Rename columns for clarity
     stock_summary.rename(columns={
         'sensitivity': 'Avg Stock Sensitivity',
-        'Baseline': 'Stock Baseline'
+        'Baseline': 'Stock Baseline [GW]'
     }, inplace=True)
     
     use_summary.rename(columns={
         'sensitivity': 'Avg Use Sensitivity',
-        'Baseline': 'Use Baseline'
+        'Baseline': 'Use Baseline [PJ]'
     }, inplace=True)
 
     # Merge the two summaries on 'pair_key'
@@ -984,13 +975,15 @@ def build_interconnection_summary_table(df_stock, df_use):
 
 def compute_stock_sensitivity_lines():
     """
-    Loads and computes stock sensitivity and baseline values per interconnection.
+    Computes stock sensitivity and baseline values for interconnections where both points are in NSG.
     
     Returns:
-        pd.DataFrame: DataFrame with 'pair_key', 'sensitivity', and 'Baseline' columns.
+        pd.DataFrame: Filtered DataFrame with 'pair_key', 'sensitivity', and 'Baseline'.
     """
-    _, df_line_capacity_all, _, _ = load_all_data()
-    
+    # Load data
+    gdf_locations, df_line_capacity_all, _, _ = load_all_data()
+    valid_labels = set(gdf_locations['label'].astype(str).str.strip())
+
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
         'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
@@ -1000,8 +993,16 @@ def compute_stock_sensitivity_lines():
         'OWF-S': ('OWF-S-Min', 'OWF-S-Max')
     }
 
+    df_line_capacity_all['DistPointA'] = df_line_capacity_all['DistPointA'].astype(str).str.strip()
+    df_line_capacity_all['DistPointB'] = df_line_capacity_all['DistPointB'].astype(str).str.strip()
+
+    df_line_capacity_all = df_line_capacity_all[
+        df_line_capacity_all['DistPointA'].isin(valid_labels) &
+        df_line_capacity_all['DistPointB'].isin(valid_labels)
+    ]
+
     df_line_capacity_all['pair_key'] = df_line_capacity_all.apply(
-        lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
+        lambda row: tuple(sorted([row['DistPointA'], row['DistPointB']])), axis=1
     )
 
     df_lines_stock = df_line_capacity_all.groupby('pair_key', as_index=False).agg({
@@ -1011,15 +1012,18 @@ def compute_stock_sensitivity_lines():
     df_lines_stock['sensitivity'] = calculate_avg_parameter_sensitivity(df_lines_stock, 'Baseline', PARAMETER_PAIRS)
     return df_lines_stock[['pair_key', 'sensitivity', 'Baseline']]
 
+
 def compute_use_sensitivity_lines():
     """
-    Loads and computes use sensitivity and baseline values per interconnection.
+    Computes use sensitivity and baseline values for interconnections where both points are in NSG.
     
     Returns:
-        pd.DataFrame: DataFrame with 'pair_key', 'sensitivity', and 'Baseline' columns.
+        pd.DataFrame: Filtered DataFrame with 'pair_key', 'sensitivity', and 'Baseline'.
     """
-    _, _, _, df_line_use_all = load_all_data()
-    
+    # Load data
+    gdf_locations, _, _, df_line_use_all = load_all_data()
+    valid_labels = set(gdf_locations['label'].astype(str).str.strip())
+
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
         'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
@@ -1029,8 +1033,16 @@ def compute_use_sensitivity_lines():
         'OWF-S': ('OWF-S-Min', 'OWF-S-Max')
     }
 
+    df_line_use_all['DistPointA'] = df_line_use_all['DistPointA'].astype(str).str.strip()
+    df_line_use_all['DistPointB'] = df_line_use_all['DistPointB'].astype(str).str.strip()
+
+    df_line_use_all = df_line_use_all[
+        df_line_use_all['DistPointA'].isin(valid_labels) &
+        df_line_use_all['DistPointB'].isin(valid_labels)
+    ]
+
     df_line_use_all['pair_key'] = df_line_use_all.apply(
-        lambda row: tuple(sorted([str(row['DistPointA']).strip(), str(row['DistPointB']).strip()])), axis=1
+        lambda row: tuple(sorted([row['DistPointA'], row['DistPointB']])), axis=1
     )
 
     df_lines_use = df_line_use_all.groupby('pair_key', as_index=False).agg({
@@ -1039,6 +1051,7 @@ def compute_use_sensitivity_lines():
 
     df_lines_use['sensitivity'] = calculate_avg_parameter_sensitivity(df_lines_use, 'Baseline', PARAMETER_PAIRS)
     return df_lines_use[['pair_key', 'sensitivity', 'Baseline']]
+
 
 
 
