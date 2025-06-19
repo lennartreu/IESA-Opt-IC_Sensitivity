@@ -148,11 +148,6 @@ def create_use_sensitivity_figure():
         ax.plot(x_pos, y_pos - size_val * 0.75, 'o', color='black', markersize=size_val * 100,
                 transform=ax.transAxes, fillstyle='none')
 
-    def find_disappearing_scenario(row, sensitivity_cols):
-        for col in sensitivity_cols:
-            if row[col] < 0.1:
-                return "IC disappears in one or more cases"
-        return None
 
     def generate_sensitivity_map(ax):
         excel_file_path = f"manual input/{SENSITIVITY_FILE}.xlsx"
