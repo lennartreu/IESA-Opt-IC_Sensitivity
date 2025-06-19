@@ -947,6 +947,8 @@ def create_individual_case_figure(case_name):
 
     return fig
 
+
+
 def build_interconnection_summary_table(df_stock, df_use):
     """
     Constructs a summary table of interconnections, labeling disappearing cases and 
@@ -977,7 +979,8 @@ def build_interconnection_summary_table(df_stock, df_use):
     merged = pd.merge(stock_summary, use_summary, on='pair_key', how='outer')
 
     # Label high sensitivities as disappearing
-    def label_disappearance(value):
+
+def label_disappearance(value):
         if pd.isna(value):
             return value
         return "IC disappears in one or more cases" if value > 5 else round(value, 2)
