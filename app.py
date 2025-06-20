@@ -1091,11 +1091,6 @@ def compute_use_sensitivity_lines():
 
 st.sidebar.title("Navigation")
 
-# Use session state to track the active page.
-# This is a good practice for multi-page-like apps in a single file.
-if 'page' not in st.session_state:
-    st.session_state.page = 'home'
-
 # --- Sidebar navigation using st.expander and st.button ---
 
 # Level 1
