@@ -1133,8 +1133,8 @@ elif st.session_state.page == 'stock_sensitivity':
     st.header("Overall Sensitivity of Infrastructure Capacity (Stock)")
     st.info("This view shows the overall sensitivity of the installed infrastructure capacity (stock) across all analyzed parameter variations.")
     with st.spinner('Generating map...'):
-        # fig = create_stock_sensitivity_figure()
-        # st.pyplot(fig)
+        fig = create_stock_sensitivity_figure()
+        st.pyplot(fig)
         st.markdown("*Your plot for 'Overall Sensitivity of Capacity (Stock)' will be displayed here.*")
 
 
@@ -1142,26 +1142,26 @@ elif st.session_state.page == 'use_sensitivity':
     st.header("Overall Sensitivity of System Use (Use)")
     st.info("This view shows the overall sensitivity of the system's energy usage (use) across all analyzed parameter variations.")
     with st.spinner('Generating map...'):
-        # fig = create_use_sensitivity_figure()
-        # st.pyplot(fig)
+        fig = create_use_sensitivity_figure()
+        st.pyplot(fig)
         st.markdown("*Your plot for 'Overall Sensitivity of System Use (Use)' will be displayed here.*")
 
 elif st.session_state.page == 'ic_overview_table':
     st.header("Table: Interconnection Sensitivity Overview")
     st.info("This table summarizes the baseline values for stock and use for each interconnection, providing a quick reference.")
     # Compute data
-    # df_lines_stock = compute_stock_sensitivity_lines()
-    # df_lines_use = compute_use_sensitivity_lines()
+    df_lines_stock = compute_stock_sensitivity_lines()
+    df_lines_use = compute_use_sensitivity_lines()
     
     # Build and display summary
-    # summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
-    # st.dataframe(
-    #     summary_table.style.format({
-    #         "Stock Baseline [GW]": "{:.1f}",
-    #         "Use Baseline [PJ]": "{:.1f}"
-    #     }),
-    #     use_container_width=True
-    # )
+    summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
+    st.dataframe(
+        summary_table.style.format({
+            "Stock Baseline [GW]": "{:.1f}",
+            "Use Baseline [PJ]": "{:.1f}"
+        }),
+        use_container_width=True
+    )
     st.markdown("*Your 'IC Sensitivity Overview' table will be displayed here.*")
 
 
@@ -1169,8 +1169,8 @@ elif st.session_state.page == 'stock_sensitivity_per_param':
     st.header("Capacity Sensitivity per Parameter")
     st.info("This visualization breaks down the capacity sensitivity by each individual parameter, allowing for a more detailed analysis of what drives changes.")
     with st.spinner('Generating all maps...'):
-        # fig = create_stock_sensitivity_per_case()
-        # st.pyplot(fig)
+        fig = create_stock_sensitivity_per_case()
+        st.pyplot(fig)
         st.markdown("*Your plot for 'Capacity Sensitivity per Parameter' will be displayed here.*")
 
 
@@ -1178,8 +1178,8 @@ elif st.session_state.page == 'use_sensitivity_per_param':
     st.header("Use Sensitivity per Parameter")
     st.info("This visualization breaks down the system use sensitivity by each individual parameter, highlighting the key drivers of usage changes.")
     with st.spinner('Generating all maps...'):
-        # fig = create_use_sensitivity_per_case()
-        # st.pyplot(fig)
+        fig = create_use_sensitivity_per_case()
+        st.pyplot(fig)
         st.markdown("*Your plot for 'Use Sensitivity per Parameter' will be displayed here.*")
 
 
@@ -1208,6 +1208,6 @@ elif st.session_state.page == 'detailed_map_per_case':
 
     with st.spinner(f'Generating map for {case_selection}...'):
         # This corresponds to your "code_block_5_stock_simple_vis"
-        # fig = create_individual_case_figure(case_selection)
-        # st.pyplot(fig)
+        fig = create_individual_case_figure(case_selection)
+        st.pyplot(fig)
         st.markdown(f"*Your plot for the '{case_selection}' case will be displayed here.*")
