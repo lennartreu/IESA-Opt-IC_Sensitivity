@@ -246,7 +246,7 @@ def create_use_sensitivity_figure():
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
                 label_text = f"{row['label']}" if row['Baseline'] > 0 else row['label']
-                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
+                ax.text(row.geometry.x, row.geometry.y, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
 
         draw_compass(ax)
