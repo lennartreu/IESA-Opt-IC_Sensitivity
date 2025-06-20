@@ -273,7 +273,7 @@ def create_use_sensitivity_figure():
         Line2D([0], [0], color='grey', lw=scale_line_thickness(300), label='300PJ Interconnection'),
         Line2D([0], [0], linestyle='--', color='black', linewidth=0.6, label='EEZ Boundaries')
     ]
-    ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Use Legend")
+    ax.legend(handles=legend_elements, loc='lower left', fontsize=16, title="Baseline Use Legend")
 
     return fig
 
@@ -458,7 +458,7 @@ def create_stock_sensitivity_figure():
         Line2D([0], [0], color='grey', lw=scale_line_thickness(35), label='35GW Interconnection'),
         Line2D([0], [0], linestyle='--', color='black', linewidth=0.6, label='EEZ Boundaries')
     ]
-    ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Capacity Legend")
+    ax.legend(handles=legend_elements, loc='lower left', fontsize=16, title="Baseline Capacity Legend")
 
     return fig
 
