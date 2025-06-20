@@ -241,7 +241,7 @@ def create_use_sensitivity_figure():
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
 
         if not gdf_points_to_plot.empty:
-            gdf_points_to_plot.plot(ax=ax, color='orange', cmap=cmap, norm=norm,
+            gdf_points_to_plot.plot(ax=ax, color='orange',
                                     markersize=gdf_points_to_plot['size'], zorder=5,
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
