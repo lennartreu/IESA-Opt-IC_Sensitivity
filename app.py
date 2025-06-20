@@ -314,7 +314,7 @@ def create_stock_sensitivity_figure():
     os.makedirs(output_directory, exist_ok=True)
 
     # --- Scaling and other Helper Functions ---
-    def scale_line_thickness(capacity_gw, data_min=0, data_max=20, viz_min=5, viz_max=35.0):
+    def scale_line_thickness(capacity_gw, data_min=0, data_max=60, viz_min=5, viz_max=35.0):
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
@@ -425,11 +425,11 @@ def create_stock_sensitivity_figure():
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
 
         if not gdf_points_to_plot.empty:
-            gdf_points_to_plot.plot(ax=ax, column='sensitivity', cmap=cmap, norm=norm,
+            gdf_points_to_plot.plot(ax=ax, color='orange',
                                     markersize=gdf_points_to_plot['size'], zorder=5,
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
-                label_text = f"{row['label']}\n({row['Baseline']:.0f} GW)" if row['Baseline'] > 0 else row['label']
+                label_text = f"{row['label']}" if row['Baseline'] > 0 else row['label']
                 ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
         
