@@ -1089,6 +1089,9 @@ def compute_use_sensitivity_lines():
 # Streamlit App Main Interface
 # =============================================================================
 
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+
 st.sidebar.title("Navigation")
 
 # --- Sidebar navigation using st.expander and st.button ---
