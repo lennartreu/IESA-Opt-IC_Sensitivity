@@ -230,12 +230,12 @@ def create_use_sensitivity_figure():
                 if row['geometry']:
                     midpoint = row.geometry.centroid
                     fontsize = 11
-                    baseline_value = row['Baseline']
+                    baseline_value = row['Baseline']/3.6
                     if pd.notna(row['disappearance_label']):
                         label_text = row['disappearance_label']
                         fontsize = 11
                     else:
-                        label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} PJ)"
+                        label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} TWh)"
 
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
