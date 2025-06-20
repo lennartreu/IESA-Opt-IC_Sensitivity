@@ -217,7 +217,7 @@ def create_use_sensitivity_figure():
 
         # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        norm = mcolors.Normalize(vmin=0, vmax=1.0) # Adjust vmax as needed
+        norm = mcolors.Normalize(vmin=0, vmax=0.5) # Adjust vmax as needed
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
@@ -398,7 +398,7 @@ def create_stock_sensitivity_figure():
 
         # --- Plotting ---
         cmap = plt.get_cmap('viridis')
-        norm = mcolors.Normalize(vmin=0, vmax=1.0) # Adjust vmax as needed based on data
+        norm = mcolors.Normalize(vmin=0, vmax=0.5) # Adjust vmax as needed based on data
         land = gpd.read_file(land_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         eez = gpd.read_file(eez_shapefile).to_crs("EPSG:4326").cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
         ax.set_facecolor("#aadaff")
