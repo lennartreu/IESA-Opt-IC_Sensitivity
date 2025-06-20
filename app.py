@@ -966,7 +966,7 @@ def build_interconnection_summary_table(df_stock, df_use):
     use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
     use_summary.rename(columns={
         'sensitivity': 'Avg Use Sensitivity',
-        'Baseline': 'Use Baseline [PJ]'
+        'Baseline': 'Use Baseline [TWh]'
     }, inplace=True)
 
     # Merge on pair_key
@@ -1154,7 +1154,7 @@ elif st.session_state.page == 'ic_overview_table':
     st.info("This table summarizes the baseline values for stock and use for each interconnection, providing a quick reference.")
     # Compute data
     df_lines_stock = compute_stock_sensitivity_lines()
-    df_lines_use = compute_use_sensitivity_lines()
+    df_lines_use = compute_use_sensitivity_lines()/3.6
     
     # Build and display summary
     summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
