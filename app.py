@@ -235,7 +235,7 @@ def create_use_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 11
                     else:
-                        label_text = f"{row['sensitivity']:.2f}\n({baseline_value:.0f} TWh)"
+                        label_text = f"{row['sensitivity']:.2f})"
 
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
