@@ -1084,65 +1084,124 @@ def compute_use_sensitivity_lines():
 
 
 
+
 # =============================================================================
 # Streamlit App Main Interface
 # =============================================================================
 
-# --- Sidebar for selecting the plot ---
-st.sidebar.header("Select Visualization")
-# You can add more options here as you fill in the other functions
-vis_options = [
-    "Select a visualization...",
-    "Overall Sensitivity of Capacity (Stock)",
-    "Overall Sensitivity of System Use (Use)",
-    "Capacity Sensitivity per Parameter",
-    "Use Sensitivity per Parameter",
-    "Detailed Map per Case (Stock & Capacity Factor)",
-    "Table: IC Sensitivity Overview"
-]
-plot_choice = st.sidebar.selectbox(
-    "Choose which analysis to display:",
-    vis_options
-)
+st.sidebar.title("Navigation")
 
-# --- Display the selected plot ---
-if plot_choice == "Overall Sensitivity of Capacity (Stock)":
+# Use session state to track the active page.
+# This is a good practice for multi-page-like apps in a single file.
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+
+# --- Sidebar navigation using st.expander and st.button ---
+
+# Level 1
+with st.sidebar.expander("Level 1: Overall sensitivity", expanded=True):
+    if st.button("Overall Sensitivity of Capacity (Stock)", use_container_width=True):
+        st.session_state.page = 'stock_sensitivity'
+    if st.button("Overall Sensitivity of System Use (Use)", use_container_width=True):
+        st.session_state.page = 'use_sensitivity'
+    if st.button("Table: IC Sensitivity Overview", use_container_width=True):
+        st.session_state.page = 'ic_overview_table'
+
+# Level 2
+with st.sidebar.expander("Level 2: Sensitivity per Parameter", expanded=True):
+    if st.button("Capacity Sensitivity per Parameter", use_container_width=True):
+        st.session_state.page = 'stock_sensitivity_per_param'
+    if st.button("Use Sensitivity per Parameter", use_container_width=True):
+        st.session_state.page = 'use_sensitivity_per_param'
+
+# Level 3
+with st.sidebar.expander("Level 3: Results per Case", expanded=True):
+    if st.button("Detailed Map per Case", use_container_width=True):
+        st.session_state.page = 'detailed_map_per_case'
+
+
+# --- Display the selected page's content on the main screen ---
+
+if st.session_state.page == 'home':
+    st.header("Welcome to the Sensitivity Analysis Dashboard")
+    st.info("Please select a visualization from the sidebar to begin.")
+    st.markdown("""
+    This application provides a visual interface for exploring the results of the sensitivity analysis.
+    
+    You can navigate through different levels of analysis using the options on the left:
+    - **Level 1:** High-level overview of the sensitivity results.
+    - **Level 2:** Detailed breakdown of sensitivity for each parameter.
+    - **Level 3:** In-depth results for each individual simulation case.
+    """)
+
+elif st.session_state.page == 'stock_sensitivity':
     st.header("Overall Sensitivity of Infrastructure Capacity (Stock)")
+    st.info("This view shows the overall sensitivity of the installed infrastructure capacity (stock) across all analyzed parameter variations.")
     with st.spinner('Generating map...'):
-        fig = create_stock_sensitivity_figure()
-        st.pyplot(fig)
+        # fig = create_stock_sensitivity_figure()
+        # st.pyplot(fig)
+        st.markdown("*Your plot for 'Overall Sensitivity of Capacity (Stock)' will be displayed here.*")
 
-elif plot_choice == "Overall Sensitivity of System Use (Use)":
+
+elif st.session_state.page == 'use_sensitivity':
     st.header("Overall Sensitivity of System Use (Use)")
+    st.info("This view shows the overall sensitivity of the system's energy usage (use) across all analyzed parameter variations.")
     with st.spinner('Generating map...'):
-        fig = create_use_sensitivity_figure()
-        st.pyplot(fig)
+        # fig = create_use_sensitivity_figure()
+        # st.pyplot(fig)
+        st.markdown("*Your plot for 'Overall Sensitivity of System Use (Use)' will be displayed here.*")
 
-elif plot_choice == "Capacity Sensitivity per Parameter":
+elif st.session_state.page == 'ic_overview_table':
+    st.header("Table: Interconnection Sensitivity Overview")
+    st.info("This table summarizes the baseline values for stock and use for each interconnection, providing a quick reference.")
+    # Compute data
+    # df_lines_stock = compute_stock_sensitivity_lines()
+    # df_lines_use = compute_use_sensitivity_lines()
+    
+    # Build and display summary
+    # summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
+    # st.dataframe(
+    #     summary_table.style.format({
+    #         "Stock Baseline [GW]": "{:.1f}",
+    #         "Use Baseline [PJ]": "{:.1f}"
+    #     }),
+    #     use_container_width=True
+    # )
+    st.markdown("*Your 'IC Sensitivity Overview' table will be displayed here.*")
+
+
+elif st.session_state.page == 'stock_sensitivity_per_param':
     st.header("Capacity Sensitivity per Parameter")
-    with st.spinner('Generating all 6 maps...'):
-        fig = create_stock_sensitivity_per_case()
-        st.pyplot(fig)
+    st.info("This visualization breaks down the capacity sensitivity by each individual parameter, allowing for a more detailed analysis of what drives changes.")
+    with st.spinner('Generating all maps...'):
+        # fig = create_stock_sensitivity_per_case()
+        # st.pyplot(fig)
+        st.markdown("*Your plot for 'Capacity Sensitivity per Parameter' will be displayed here.*")
 
-elif plot_choice == "Use Sensitivity per Parameter":
+
+elif st.session_state.page == 'use_sensitivity_per_param':
     st.header("Use Sensitivity per Parameter")
-    with st.spinner('Generating all 6 maps...'):
-        fig = create_use_sensitivity_per_case()
-        st.pyplot(fig)
+    st.info("This visualization breaks down the system use sensitivity by each individual parameter, highlighting the key drivers of usage changes.")
+    with st.spinner('Generating all maps...'):
+        # fig = create_use_sensitivity_per_case()
+        # st.pyplot(fig)
+        st.markdown("*Your plot for 'Use Sensitivity per Parameter' will be displayed here.*")
 
 
-elif plot_choice == "Detailed Map per Case (Stock & Capacity Factor)":
-    st.header("Detailed Infrastructure Map for a Single Case")
-    st.write(
-        "This map shows the detailed results for a single sensitivity case, including installed capacity (GW) and the resulting capacity factor.\n\n"
-        "The respective scenarios are:\n\n"
-        "Baseline: Baseline results (AVG scenario)\n\n"
-        "HVDC-Min/Max: minimum and maximum HVDC connection cost\n\n"
-        "OWF-C-Min/Max: minimum and maximum OWF construction cost\n\n"
-        "ED-Min/Max: minimum and maximum changes in energy demand\n\n"
-        "EP-Min/Max: minimum and maximum electricity prices\n\n"
-        "WACC-Min/Max: minimum and maximum WACC value\n\n"
-        "OWF-S-Min/Max: minimum and maximum installed OWF capacity\n\n")
+elif st.session_state.page == 'detailed_map_per_case':
+    st.header("Detailed Map per Case (Stock & Capacity Factor)")
+    st.info("Select a specific sensitivity case from the dropdown below to view a detailed map of its installed capacity (GW) and resulting capacity factor.")
+    
+    st.markdown("""
+    The respective scenarios are:
+    - **Baseline**: Baseline results (AVG scenario)
+    - **HVDC-Min/Max**: Minimum and maximum HVDC connection cost
+    - **OWF-C-Min/Max**: Minimum and maximum OWF construction cost
+    - **ED-Min/Max**: Minimum and maximum changes in energy demand
+    - **EP-Min/Max**: Minimum and maximum electricity prices
+    - **WACC-Min/Max**: Minimum and maximum WACC value
+    - **OWF-S-Min/Max**: Minimum and maximum installed OWF capacity
+    """)
 
     COLUMN_HEADERS = [
         'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
@@ -1154,27 +1213,6 @@ elif plot_choice == "Detailed Map per Case (Stock & Capacity Factor)":
 
     with st.spinner(f'Generating map for {case_selection}...'):
         # This corresponds to your "code_block_5_stock_simple_vis"
-        fig = create_individual_case_figure(case_selection)
-        st.pyplot(fig)
-
-elif plot_choice == "Table: IC Sensitivity Overview":
-
-    # Compute data
-    df_lines_stock = compute_stock_sensitivity_lines()
-    df_lines_use = compute_use_sensitivity_lines()
-    
-    # Build and display summary
-    summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
-    # st.dataframe(summary_table, use_container_width=True)
-    st.dataframe(
-    summary_table.style.format({
-        "Stock Baseline [GW]": "{:.1f}",
-        "Use Baseline [PJ]": "{:.1f}"
-    }),
-    use_container_width=True
-    )
-
-
-
-else:
-    st.write("Please select a visualization from the sidebar to begin.")
+        # fig = create_individual_case_figure(case_selection)
+        # st.pyplot(fig)
+        st.markdown(f"*Your plot for the '{case_selection}' case will be displayed here.*")
