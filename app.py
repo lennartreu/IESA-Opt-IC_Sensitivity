@@ -264,7 +264,7 @@ def create_use_sensitivity_figure():
     cbar_ax = fig.add_axes([0.87, 0.25, 0.03, 0.5])
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbar = fig.colorbar(sm, cax=cbar_ax)
-
+    
     # *** MODIFIED LABEL ***
     cbar.set_label('Average Parameter Sensitivity', fontsize=12, rotation=270, labelpad=25)
     
