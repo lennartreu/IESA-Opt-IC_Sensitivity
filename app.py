@@ -235,7 +235,7 @@ def create_use_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 11
                     else:
-                        label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} TWh)"
+                        label_text = f"{row['sensitivity']:.2f}\n({baseline_value:.0f} TWh)"
 
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
@@ -418,7 +418,7 @@ def create_stock_sensitivity_figure():
                         label_text = row['disappearance_label']
                         fontsize = 11  # Use a specific font size for the descriptive text
                     else:
-                        label_text = f"sens: {row['sensitivity']:.2f}\n({baseline_value:.0f} GW"
+                        label_text = f"{row['sensitivity']:.2f}\n({baseline_value:.0f} GW"
                         
                     
                     ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
@@ -430,7 +430,7 @@ def create_stock_sensitivity_figure():
                                     edgecolor='black', linewidth=0.8)
             for _, row in gdf_points_to_plot.iterrows():
                 label_text = f"{row['label']}" if row['Baseline'] > 0 else row['label']
-                ax.text(row.geometry.x, row.geometry.y + 0.1, label_text, fontsize=12, ha='center',
+                ax.text(row.geometry.x, row.geometry.y, label_text, fontsize=12, ha='center',
                         bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.1), zorder=6)
         
         draw_compass(ax)
@@ -455,7 +455,7 @@ def create_stock_sensitivity_figure():
 
     legend_elements = [
         Line2D([0], [0], color='grey', lw=scale_line_thickness(5), label='5GW Interconnection'),
-        Line2D([0], [0], color='grey', lw=scale_line_thickness(15), label='15GW Interconnection'),
+        Line2D([0], [0], color='grey', lw=scale_line_thickness(35), label='35GW Interconnection'),
         Line2D([0], [0], linestyle='--', color='black', linewidth=0.6, label='EEZ Boundaries')
     ]
     ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Capacity Legend")
