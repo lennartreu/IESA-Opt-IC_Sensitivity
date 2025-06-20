@@ -269,8 +269,8 @@ def create_use_sensitivity_figure():
     cbar.set_label('Average Parameter Sensitivity', fontsize=12, rotation=270, labelpad=25)
     
     legend_elements = [
-        Line2D([0], [0], color='grey', lw=scale_line_thickness(100), label='100PJ Interconnection'),
-        Line2D([0], [0], color='grey', lw=scale_line_thickness(300), label='300PJ Interconnection'),
+        Line2D([0], [0], color='grey', lw=scale_line_thickness(100), label='30TWh Interconnection'),
+        Line2D([0], [0], color='grey', lw=scale_line_thickness(300), label='100TWh Interconnection'),
         Line2D([0], [0], linestyle='--', color='black', linewidth=0.6, label='EEZ Boundaries')
     ]
     ax.legend(handles=legend_elements, loc='lower left', fontsize=12, title="Baseline Use Legend", title_fontsize=14)
