@@ -964,6 +964,7 @@ def build_interconnection_summary_table(df_stock, df_use):
 
     # Prepare use summary
     use_summary = df_use[['pair_key', 'sensitivity', 'Baseline']].copy()
+    use_summary['Baseline'] = use_summary['Baseline']/3.6
     use_summary.rename(columns={
         'sensitivity': 'Avg Use Sensitivity',
         'Baseline': 'Use Baseline [TWh]'
@@ -1155,14 +1156,14 @@ elif st.session_state.page == 'ic_overview_table':
     # Compute data
     df_lines_stock = compute_stock_sensitivity_lines()
     df_lines_use = compute_use_sensitivity_lines()
-    df_lines_use = df_lines_use/3.6
+    
     
     # Build and display summary
     summary_table = build_interconnection_summary_table(df_lines_stock, df_lines_use)
     st.dataframe(
         summary_table.style.format({
             "Stock Baseline [GW]": "{:.1f}",
-            "Use Baseline [PJ]": "{:.1f}"
+            "Use Baseline [TWh]": "{:.1f}"
         }),
         use_container_width=True
     )
