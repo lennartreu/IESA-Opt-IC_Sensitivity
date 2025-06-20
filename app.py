@@ -237,7 +237,7 @@ def create_use_sensitivity_figure():
                     else:
                         label_text = f"{row['sensitivity']:.2f}\n{baseline_value:.0f}TWh"
 
-                    ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
+                    ax.text(midpoint.x, midpoint.y, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
 
         if not gdf_points_to_plot.empty:
@@ -421,7 +421,7 @@ def create_stock_sensitivity_figure():
                         label_text = f"{row['sensitivity']:.2f}\n{baseline_value:.0f}GW"
                         
                     
-                    ax.text(midpoint.x, midpoint.y + 0.05, label_text, fontsize=fontsize, ha='center', va='bottom',
+                    ax.text(midpoint.x, midpoint.y, label_text, fontsize=fontsize, ha='center', va='bottom',
                             bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=0.1), zorder=7)
 
         if not gdf_points_to_plot.empty:
