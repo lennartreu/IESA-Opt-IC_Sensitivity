@@ -85,7 +85,7 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
 def find_disappearing_scenario(row, sensitivity_cols):
         for col in sensitivity_cols:
-            if row[col] < 0.1:
+            if row[col] < 0.01:
                 return ">1"
         return None
 
@@ -361,6 +361,7 @@ def create_stock_sensitivity_figure():
         df_lines_agg[['DistPointA', 'DistPointB']] = pd.DataFrame(df_lines_agg['pair_key'].tolist(), index=df_lines_agg.index)
         df_lines_agg['disappearance_label'] = df_lines_agg.apply(
             lambda row: find_disappearing_scenario(row, SENSITIVITY_COLUMNS), axis=1
+            
         )
 
         # --- Process Point Data (Hubs) ---
