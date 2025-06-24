@@ -1216,4 +1216,4 @@ elif st.session_state.page == 'detailed_map_per_case':
         # This corresponds to your "code_block_5_stock_simple_vis"
         fig = create_individual_case_figure(case_selection)
         st.pyplot(fig)
-        st.markdown(f"*Your plot for the '{case_selection}' case will be displayed here.*")
+        st.markdown(f"**")
