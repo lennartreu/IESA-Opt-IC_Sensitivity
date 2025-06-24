@@ -1140,7 +1140,7 @@ elif st.session_state.page == 'stock_sensitivity':
     with st.spinner('Generating map...'):
         fig = create_stock_sensitivity_figure()
         st.pyplot(fig)
-        st.markdown("*Your plot for 'Overall Sensitivity of Capacity (Stock)' will be displayed here.*")
+        st.markdown("**")
 
 
 elif st.session_state.page == 'use_sensitivity':
@@ -1149,7 +1149,7 @@ elif st.session_state.page == 'use_sensitivity':
     with st.spinner('Generating map...'):
         fig = create_use_sensitivity_figure()
         st.pyplot(fig)
-        st.markdown("*Your plot for 'Overall Sensitivity of System Use (Use)' will be displayed here.*")
+        st.markdown("**")
 
 elif st.session_state.page == 'ic_overview_table':
     st.header("Table: Interconnection Sensitivity Overview")
@@ -1168,7 +1168,7 @@ elif st.session_state.page == 'ic_overview_table':
         }),
         use_container_width=True
     )
-    st.markdown("*Your 'IC Sensitivity Overview' table will be displayed here.*")
+    st.markdown("**")
 
 
 elif st.session_state.page == 'stock_sensitivity_per_param':
@@ -1177,7 +1177,7 @@ elif st.session_state.page == 'stock_sensitivity_per_param':
     with st.spinner('Generating all maps...'):
         fig = create_stock_sensitivity_per_case()
         st.pyplot(fig)
-        st.markdown("*Your plot for 'Capacity Sensitivity per Parameter' will be displayed here.*")
+        st.markdown("**")
 
 
 elif st.session_state.page == 'use_sensitivity_per_param':
@@ -1186,7 +1186,7 @@ elif st.session_state.page == 'use_sensitivity_per_param':
     with st.spinner('Generating all maps...'):
         fig = create_use_sensitivity_per_case()
         st.pyplot(fig)
-        st.markdown("*Your plot for 'Use Sensitivity per Parameter' will be displayed here.*")
+        st.markdown("**")
 
 
 elif st.session_state.page == 'detailed_map_per_case':
