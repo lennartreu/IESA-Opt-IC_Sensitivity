@@ -85,7 +85,7 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
 def find_disappearing_scenario(row, sensitivity_cols):
         for col in sensitivity_cols:
-            if row[col] < 0.01:
+            if row[col] < 0.001:
                 return ">1"
         return None
 
@@ -130,7 +130,7 @@ def create_use_sensitivity_figure():
     os.makedirs(output_directory, exist_ok=True)
 
     # --- Scaling and other Helper Functions ---
-    def scale_line_thickness(capacity_gw, data_min=0.000001, data_max=1000, viz_min=5, viz_max=60.0):
+    def scale_line_thickness(capacity_gw, data_min=0.00001, data_max=1000, viz_min=5, viz_max=60.0):
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
