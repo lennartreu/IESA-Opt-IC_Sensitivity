@@ -609,7 +609,7 @@ def create_stock_sensitivity_per_case():
     fig, axes = plt.subplots(2, 3, figsize=(20, 14), sharex=True, sharey=True)
     axes_flat = axes.flatten()
     cmap = plt.get_cmap('viridis')
-    norm = mcolors.Normalize(vmin=0, vmax=1.0)  # Sensitivity from 0% to 100%
+    norm = mcolors.Normalize(vmin=0, vmax=0.5)  # Sensitivity from 0% to 100%
 
     # Generate each map
     for i, (title, case_cols) in enumerate(PARAMETER_CASES.items()):
@@ -791,7 +791,7 @@ def create_use_sensitivity_per_case():
     fig, axes = plt.subplots(2, 3, figsize=(20, 14), sharex=True, sharey=True)
     axes_flat = axes.flatten()
     cmap = plt.get_cmap('viridis')
-    norm = mcolors.Normalize(vmin=0, vmax=1.0)  # Sensitivity from 0% to 100%
+    norm = mcolors.Normalize(vmin=0, vmax=0.5)  # Sensitivity from 0% to 100%
 
     # Generate each map
     for i, (title, case_cols) in enumerate(PARAMETER_CASES.items()):
