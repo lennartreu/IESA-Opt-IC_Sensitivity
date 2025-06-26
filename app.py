@@ -35,7 +35,7 @@ def load_all_data():
     """Loads and cleans all necessary dataframes once."""
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
-        'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
+        'Baseline', 'HVDC-Min', 'HVDC-Max', 'ED-Min', 'ED-Max',
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
     excel_file_locations = "manual input/Hub locations input.xlsx"
@@ -102,7 +102,7 @@ def create_use_sensitivity_figure():
     # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
-        'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
+        'Baseline', 'HVDC-Min', 'HVDC-Max', 'ED-Min', 'ED-Max',
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
     SENSITIVITY_COLUMNS = COLUMN_HEADERS[1:]
@@ -110,7 +110,6 @@ def create_use_sensitivity_figure():
     # *** Define parameter pairs for the new calculation ***
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
-        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
         'ED': ('ED-Min', 'ED-Max'),
         'EP': ('EP-Min', 'EP-Max'),
         'WACC': ('WACC-Min', 'WACC-Max'),
@@ -286,7 +285,7 @@ def create_stock_sensitivity_figure():
     # --- Configuration ---
     SENSITIVITY_FILE = "Post-Process manual sensitivity"
     COLUMN_HEADERS = [
-        'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
+        'Baseline', 'HVDC-Min', 'HVDC-Max', 'ED-Min', 'ED-Max',
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
     SENSITIVITY_COLUMNS = COLUMN_HEADERS[1:]
@@ -294,7 +293,6 @@ def create_stock_sensitivity_figure():
     # Define parameter pairs for the sensitivity calculation
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
-        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
         'ED': ('ED-Min', 'ED-Max'),
         'EP': ('EP-Min', 'EP-Max'),
         'WACC': ('WACC-Min', 'WACC-Max'),
@@ -1017,7 +1015,6 @@ def compute_stock_sensitivity_lines():
 
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
-        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
         'ED': ('ED-Min', 'ED-Max'),
         'EP': ('EP-Min', 'EP-Max'),
         'WACC': ('WACC-Min', 'WACC-Max'),
@@ -1057,7 +1054,6 @@ def compute_use_sensitivity_lines():
 
     PARAMETER_PAIRS = {
         'HVDC': ('HVDC-Min', 'HVDC-Max'),
-        'OWF-C': ('OWF-C-Min', 'OWF-C-Max'),
         'ED': ('ED-Min', 'ED-Max'),
         'EP': ('EP-Min', 'EP-Max'),
         'WACC': ('WACC-Min', 'WACC-Max'),
@@ -1197,7 +1193,6 @@ elif st.session_state.page == 'detailed_map_per_case':
     The respective scenarios are:
     - **Baseline**: Baseline results (AVG scenario)
     - **HVDC-Min/Max**: Minimum and maximum HVDC connection cost
-    - **OWF-C-Min/Max**: Minimum and maximum OWF construction cost
     - **ED-Min/Max**: Minimum and maximum changes in energy demand
     - **EP-Min/Max**: Minimum and maximum electricity prices
     - **WACC-Min/Max**: Minimum and maximum WACC value
@@ -1205,7 +1200,7 @@ elif st.session_state.page == 'detailed_map_per_case':
     """)
 
     COLUMN_HEADERS = [
-        'Baseline', 'HVDC-Min', 'HVDC-Max', 'OWF-C-Min', 'OWF-C-Max', 'ED-Min', 'ED-Max',
+        'Baseline', 'HVDC-Min', 'HVDC-Max', 'ED-Min', 'ED-Max',
         'EP-Min', 'EP-Max', 'WACC-Min', 'WACC-Max', 'OWF-S-Min', 'OWF-S-Max'
     ]
 
