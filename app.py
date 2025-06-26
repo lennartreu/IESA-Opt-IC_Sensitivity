@@ -130,7 +130,7 @@ def create_use_sensitivity_figure():
     os.makedirs(output_directory, exist_ok=True)
 
     # --- Scaling and other Helper Functions ---
-    def scale_line_thickness(capacity_gw, data_min=0.001, data_max=1000, viz_min=5, viz_max=60.0):
+    def scale_line_thickness(capacity_gw, data_min=0.00001, data_max=1000, viz_min=5, viz_max=60.0):
         if pd.isna(capacity_gw) or capacity_gw <= data_min: return 0.0
         if capacity_gw >= data_max: return viz_max
         return viz_min + ((capacity_gw - data_min) / (data_max - data_min)) * (viz_max - viz_min)
