@@ -85,7 +85,7 @@ def calculate_avg_parameter_sensitivity(df, baseline_col, param_pairs):
 
 def find_disappearing_scenario(row, sensitivity_cols):
         for col in sensitivity_cols:
-            if row[col] < 0.001:
+            if row[col] < 0.0001:
                 return ">1"
         return None
 
@@ -977,7 +977,7 @@ def build_interconnection_summary_table(df_stock, df_use):
     def label_disappearance(value):
         if pd.isna(value):
             return value
-        return ">1" if value > 500 else f"{value:.2f}"
+        return ">1" if value > 5000 else f"{value:.2f}"
 
     merged['Avg Stock Sensitivity'] = merged['Avg Stock Sensitivity'].apply(label_disappearance)
     merged['Avg Use Sensitivity'] = merged['Avg Use Sensitivity'].apply(label_disappearance)
